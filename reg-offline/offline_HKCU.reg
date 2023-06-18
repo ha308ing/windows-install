@@ -1,0 +1,189 @@
+Windows Registry Editor Version 5.00
+
+; keyboard layout toggle to Ctrl + Shift
+[HKEY_LOCAL_MACHINE\OFFLINE\Keyboard Layout\Toggle]
+"Language Hotkey"="2"
+"Hotkey"="2"
+"Layout Hotkey"="3"
+
+; disable mouse pointer precision
+[HKEY_LOCAL_MACHINE\OFFLINE\Control Panel\Mouse]
+"MouseSpeed"="0"
+
+; default terminal: windows console host
+[HKEY_LOCAL_MACHINE\OFFLINE\Console\%%Startup]
+"DelegationConsole"="{B23D10C0-E52E-411E-9D5B-C09FDF709C7D}"
+"DelegationTerminal"="{B23D10C0-E52E-411E-9D5B-C09FDF709C7D}"
+
+; Disable Windows 11 Show more options context menu
+[HKEY_LOCAL_MACHINE\OFFLINE\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}]
+@="
+[HKEY_LOCAL_MACHINE\OFFLINE\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32]
+@=""
+
+[HKEY_LOCAL_MACHINE\OFFLINE\Software\Microsoft\Windows\CurrentVersion\Search]
+; Remove Bing Chat and Web Icons in Windows Search, disable Search Highlights
+"BingSearchEnabled"=dword:00000000
+; Hide Search on Taskbar
+"SearchboxTaskbarMode"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\OFFLINE\Software\Policies\Microsoft\Windows\Explorer]
+; Remove Open with "Look for an app in the Microsoft Store" or "Browse apps in the Microsoft Store"
+"NoUseStoreOpenWith"=-
+; Disable Show Recently Added Apps on Start Menu
+"HideRecentlyAddedApps"=-
+; Always Hide Most Used apps list on Start Menu
+"ShowOrHideMostUsedApps"=-
+
+; Explorer options
+[HKEY_LOCAL_MACHINE\OFFLINE\Software\Microsoft\Windows\CurrentVersion\Explorer]
+; Turn Off Show Files from Office.com in File Explorer Home for Current User
+"ShowCloudFilesInQuickAccess"=dword:00000000
+"ShowFrequent"=dword:00000000
+"ShowRecent"=dword:00000000
+; disable autoplay
+"DisableAutoplay"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\OFFLINE\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced]
+"AutoCheckSelect"=dword:00000001
+"Hidden"=dword:00000001
+"HideFileExt"=dword:00000000
+"HideFileExt"=dword:00000000
+"LaunchTo"=dword:00000001
+"SeparateProcess"=dword:00000001
+"SeparateProcess"=dword:00000001
+"ShowSyncProviderNotifications"=dword:00000000
+"UseCompactMode"=dword:00000001
+; Remove Chat Button for Current User on Taskbar
+"TaskbarMn"=dword:00000000
+; Disable Snap Layouts for Maximize Button
+"EnableSnapAssistFlyout"=dword:00000000
+; Disable Snap Layouts on Top of Screen
+"EnableSnapBar"=dword:00000001
+; Turn Off "Show recommendations for tips, shortcuts, new apps, and more" on Start
+"Start_IrisRecommendations"=dword:00000000
+; Change Start Layout to Show More Recommendations
+"Start_Layout"=dword:00000001
+; Turn Off App Launch Tracking
+"Start_TrackProgs"=dword:00000000
+"Start_TrackDocs"=dword:00000000
+"SnapAssist"=dword:00000001
+"MultiTaskingAltTabFilter"=dword:00000003
+"EnableSnapAssistFlyout"=dword:00000000
+"EnableTaskGroups"=dword:00000001
+"DITest"=dword:00000000
+"DisallowShaking"=dword:00000001
+
+; Turn Off Clipboard History for Current User
+[HKEY_LOCAL_MACHINE\OFFLINE\Software\Microsoft\Clipboard]
+"EnableClipboardHistory"=dword:00000000
+
+; Turn Off "Let apps access your location"
+[HKEY_LOCAL_MACHINE\OFFLINE\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location]
+"Value"="Deny"
+
+; Turn Off Advertising ID
+[HKEY_LOCAL_MACHINE\OFFLINE\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo]
+"Enabled"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\OFFLINE\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager]
+; Disable Windows Welcome Experience
+"SubscribedContent-310093Enabled"=dword:00000000
+; Turn Off "Get tips and suggestions when using Windows"
+"SubscribedContent-338389Enabled"=dword:00000000
+; Turn off "Get fun facts, tips, tricks, and more on your lock screen"
+"RotatingLockScreenOverlayEnabled"=dword:00000000
+"SubscribedContent-338387Enabled"=dword:00000000
+; Turn Off Suggested Content in Settings
+"SubscribedContent-338393Enabled"=dword:00000000
+"SubscribedContent-353694Enabled"=dword:00000000
+"SubscribedContent-353696Enabled"=dword:00000000
+
+; Disable "Let's finish setting up your device"
+[HKEY_LOCAL_MACHINE\OFFLINE\Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement]
+"ScoobeSystemSettingEnabled"=dword:00000000
+
+; Turn Off Tailored Experiences
+; [HKEY_LOCAL_MACHINE\OFFLINE\Software\Microsoft\Windows\CurrentVersion\Privacy]
+"TailoredExperiencesWithDiagnosticDataEnabled"=dword:00000000
+
+; Disable Tailored Experiences
+[HKEY_LOCAL_MACHINE\OFFLINE\Software\Policies\Microsoft\Windows\CloudContent]
+"DisableTailoredExperiencesWithDiagnosticData"=dword:00000001
+
+; Turn Off Improve Inking and Typing
+[HKEY_LOCAL_MACHINE\OFFLINE\Software\Microsoft\Input\TIPC]
+"Enabled"=dword:00000000
+
+; Turn Off "Send optional diagnostic data" to Only Send Required Diagnostic Data
+;[HKEY_LOCAL_MACHINE\OFFLINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Diagnostics\DiagTrack]
+"ShowedToastAtLevel"=dword:00000001
+
+; Always Hide Most Used apps list on Start Menu for All Users
+[HKEY_LOCAL_MACHINE\OFFLINE\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+"NoStartMenuMFUprogramsList"=-
+"NoInstrumentation"=-
+
+; Turn Off Keyboard Shortcut for Narrator
+[HKEY_LOCAL_MACHINE\OFFLINE\Software\Microsoft\Narrator\NoRoam]
+"WinEnterLaunchEnabled"=dword:00000000
+
+; Turn Off Website Access to Language List
+[HKEY_LOCAL_MACHINE\OFFLINE\Control Panel\International\User Profile]
+"UserLocaleFromLanguageProfileOptOut"=dword:00000001
+"HttpAcceptLanguageOptOut"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\OFFLINE\Software\Microsoft\Windows\CurrentVersion\CPSS\Store\InkingAndTypingPersonalization]
+"Value"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\OFFLINE\Software\Microsoft\Personalization\Settings]
+"AcceptedPrivacyPolicy"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\OFFLINE\Software\Microsoft\InputPersonalization]
+"RestrictImplicitInkCollection"=dword:00000001
+"RestrictImplicitTextCollection"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\OFFLINE\Software\Microsoft\InputPersonalization\TrainedDataStore]
+"HarvestContacts"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\OFFLINE\SOFTWARE\Microsoft\TabletTip\1.7]
+; Turn Off Autocorrect Misspelled Words
+"EnableAutocorrection"=dword:00000000
+; Turn Off Highlight Misspelled Words
+"EnableSpellchecking"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\OFFLINE\Software\Microsoft\Windows\CurrentVersion\SearchSettings]
+; Turn Off Recent Search History on this Device
+"IsDeviceSearchHistoryEnabled"=dword:00000000
+; Turn Off Cloud Content Search for Microsoft account
+"IsMSACloudSearchEnabled"=dword:00000000
+; Turn Off Cloud Content Search for Work or School account
+"IsAADCloudSearchEnabled"=dword:00000000
+
+; Disable App Launch Tracking for All Users
+[HKEY_LOCAL_MACHINE\OFFLINE\Software\Policies\Microsoft\Windows\EdgeUI]
+"DisableMFUTracking"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\OFFLINE\Software\Microsoft\GameBar]
+"UseNexusForGameBarEnabled"=dword:00000000
+
+; Change Feedback Frequency to Never
+[HKEY_LOCAL_MACHINE\OFFLINE\SOFTWARE\Microsoft\Siuf\Rules]
+"NumberOfSIUFInPeriod"=dword:00000000
+"PeriodInNanoSeconds"=-
+
+[HKEY_LOCAL_MACHINE\OFFLINE\Software\Microsoft\Speech_OneCore\Settings\OnlineSpeechPrivacy]
+"HasAccepted"=dword:00000000
+
+; Stop Contributing Voice Clips for Online Speech Recognition
+[HKEY_LOCAL_MACHINE\OFFLINE\Software\Microsoft\Speech_OneCore\Settings\OnlineSpeechLogging]
+"LoggingAllowed"=dword:00000000
+
+[Software\Microsoft\Windows\CurrentVersion\Internet Settings\5.0\Cache\Content]
+"CacheLimit"=dword:00002000
+
+[HKEY_LOCAL_MACHINE\OFFLINE\Software\Microsoft\Windows\CurrentVersion\Internet Settings]
+"SyncMode5"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\OFFLINE\Software\Microsoft\Windows\CurrentVersion\Internet Settings\Url History]
+"DaysToKeep"=dword:00000000

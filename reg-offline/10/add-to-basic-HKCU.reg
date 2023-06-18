@@ -1,0 +1,97 @@
+; win 10:
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager]
+; show suggestions in timeline
+"SubscribedContent-353698Enabled"=dword:00000000
+; lockscreen picture
+"RotatingLockScreenEnabled"=dword:00000000
+; suggestions in start
+"SubscribedContent-338388Enabled"=dword:00000000
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\AdvertisingInfo]
+"Enabled"=dword:00000000
+"Id"=-
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Feeds]
+; news and feeds in taskbar
+"ShellFeedsTaskbarViewMode"=dword:00000002
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel]
+"AllItemsIconView"=dword:00000001
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\AutoplayHandlers]
+"DisableAutoplay"=dword:00000001
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Activities\Email]
+"DefaultActivity"=""
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Activities\Email\live.com]
+"Deleted"=dword:00000001
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Activities\Map]
+"DefaultActivity"=""
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Activities\Map\bing.com]
+"Deleted"=dword:00000001
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Activities\Translate]
+"DefaultActivity"=""
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Activities\Translate\microsofttranslator.com]
+"Deleted"=dword:00000001
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Url History]
+"DaysToKeep"=dword:00000000
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings]
+"PrivacyAdvanced"=dword:00000001
+
+[HKEY_CURRENT_USER\Software\Microsoft\Internet Explorer\International]
+"AcceptLanguage"=-
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Internet Explorer\Main]
+"Save_Session_History_On_Exit"="no"
+"Show_FullURL"="yes"
+"Use FormSuggest"="no"
+"FormSuggest Passwords"="no"
+"FormSuggest PW Ask"="no"
+"Enable Browser Extensions"="no"
+"Start Page"="about:blank"
+"Friendly http errors"="yes"
+"Check_Associations"="no"
+"SmoothScroll"=dword:00000000
+"DoNotTrack"=dword:00000001
+"Secondary Start Pages"=-
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Internet Explorer\Privacy]
+"ClearBrowsingHistoryOnExit"=dword:00000001
+"CleanDownloadHistory"=dword:00000001
+"CleanForms"=dword:00000001
+"CleanPassword"=dword:00000001
+"CleanTrackingProtection"=dword:00000001
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Internet Explorer\Suggested Sites]
+"Enabled"=dword:00000000
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Internet Explorer\BrowserStorage\AppCache]
+"AllowWebsiteCaches"=dword:00000000
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Internet Explorer\BrowserStorage\IndexedDB]
+"AllowWebsiteDatabases"=dword:00000000
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Internet Explorer\ContinuousBrowsing]
+"Enabled"=dword:00000000
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Internet Explorer\Geolocation]
+"BlockAllWebsites"=dword:00000001
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Internet Explorer\Feeds]
+"AutoMarkAsReadOPV"=dword:00000000
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Internet Explorer\TabbedBrowsing]
+"ThumbnailBehavior"=dword:00000000
+"PopupsUseNewWindow"=dword:00000002
+"NewTabPageShow"=dword:00000000
+"WarnOnClose"=dword:00000001
+
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+"HideSCAMeetNow"=dword:00000001

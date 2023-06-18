@@ -1,0 +1,122 @@
+Windows Registry Editor Version 5.00
+
+; Disable Widgets
+[HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Dsh]
+"AllowNewsAndInterests"=dword:00000000
+
+; Disable Widgets
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\default\NewsAndInterests\AllowNewsAndInterests]
+"value"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Explorer]
+; Remove Open with "Look for an app in the Microsoft Store" or "Browse apps in the Microsoft Store"
+"NoUseStoreOpenWith"=dword:00000001
+; Disable Show Files from Office.com in File Explorer Home for All Users
+"DisableGraphRecentItems"=dword:00000001
+; Disable Show Recently Added Apps on Start Menu for All Users
+"HideRecentlyAddedApps"=dword:00000001
+; Always Hide Most Used apps list on Start Menu for All Users
+"ShowOrHideMostUsedApps"=dword:00000002
+
+; Disable Chat Button on Taskbar for All Users
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Chat]
+"ChatIcon"=dword:00000003
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Search]
+; Hide Search on Taskbar for All Users
+"SearchOnTaskbarMode"=dword:00000000
+; Disable Cloud Content Search for All Users
+"AllowCloudSearch"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsUpdate]
+; Disable Include Drivers with Windows Updates
+"ExcludeWUDriversInQualityUpdate"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsUpdate\AU]
+"IncludeRecommendedUpdates"=dword:00000000
+"AUOptions"=dword:00000002
+
+[HKEY_LOCAL_MACHINE\Software\Policies\Mozilla\Firefox]
+"AppUpdateURL"="http://127.0.0.1/"
+"DisableAppUpdate"=dword:00000001
+"DisableFirefoxStudies"=dword:00000001
+"DisableTelemetry"=dword:00000001
+
+; Enable Stickers
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\current\device\Stickers]
+"EnableStickers"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked]
+"{596AB062-B4D2-4215-9F74-E9109B0A8153}"=""
+"{7AD84985-87B4-4a16-BE58-8B72A5B390F7}"=""
+"{A5D35F9F-6A11-4EAA-B70B-7BB6FE32663A}"=""
+"{9E56BE60-C50F-11CF-9A2C-00A0C90A90CE}"=""
+"{7BA4C740-9E81-11CF-99D3-00AA004AE837}"=""
+"{40dd6e20-7c17-11ce-a804-00aa003ca9f6}"=""
+"{776DBC8D-7347-478C-8D71-791E12EF49D8}"="Skype"
+
+; Turn Off "Send optional diagnostic data" to Only Send Required Diagnostic Data
+; [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection]
+; "AllowTelemetry"=dword:00000001
+; "MaxTelemetryAllowed"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\DataCollection]
+; Turn Off and Disable Diagnostic Data
+"AllowTelemetry"=dword:00000000
+; Disable Feedback Frequency
+"DoNotShowFeedbackNotifications"=dword:00000001
+
+; Disable Choose Privacy Settings Experience at Sign-in for All Users
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\OOBE]
+"DisablePrivacyExperience"=dword:00000001
+
+; Disable Location Services
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors]
+"DisableLocation"=dword:00000001
+
+; Turn Off Location Services
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location]
+"Value"="Deny"
+
+; Disable First Sign-in Animation
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
+"EnableFirstLogonAnimation"=dword:00000000
+; Disable First Sign-in Animation
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon]
+"EnableFirstLogonAnimation"=dword:00000000
+
+; Disable Advertising ID for All Users
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\AdvertisingInfo]
+"DisabledByGroupPolicy"=dword:00000001
+
+; Disable Improve Inking and Typing
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\TextInput]
+"AllowLinguisticDataCollection"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\System]
+; Disable Clipboard History for All Users
+"AllowClipboardHistory"=dword:00000000
+; Disable Send Activity History to Microsoft
+"UploadUserActivities"=dword:00000000
+; Disable Store Activity History on Device
+"PublishUserActivities"=dword:00000000
+
+; Always Hide Most Used apps list on Start Menu for All Users
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+"NoStartMenuMFUprogramsList"=-
+"NoInstrumentation"=-
+
+; Turn On Developer Mode
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock]
+"AllowDevelopmentWithoutDevLicense"=dword:00000001
+
+; Stop Contributing Voice Clips for Online Speech Recognition
+[HKEY_CURRENT_USER\Software\Microsoft\Speech_OneCore\Settings\OnlineSpeechLogging]
+"LoggingAllowed"=dword:00000000
+
+; Disable App Launch Tracking for All Users
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\EdgeUI]
+"DisableMFUTracking"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\InputPersonalization]
+"AllowInputPersonalization"=dword:00000000
