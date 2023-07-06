@@ -2,33 +2,38 @@
 
 :setVHD
 set stepTitle=vhdx allocation
-set vhdSizeMin=65
+set vhdSizeMinGB=65
+: manually set %vhdSizeMinGB% * 1024 ^ 3
+set vhdSizeMinB=69793218560
 set /p vhd="%stepTitle%: Enter path to vhdx: "
 if "!vhd!" equ "" goto :setVHD
+: default path with quotes
 set vhd=^"!vhd:"=!^"
-echo !vhd!
-echo test dir:
-for /f "delims=" %%i in ('dir /b /s !vhd!') do (
-  echo "%%i"
-)
-echo test dir end.
+
+: echo test finstr from name:
+: echo !vhd! | findstr /ie .vhd\\\"8
 
 if not exist !vhd! (
-  echo %stepTitle%: vhdx not found. Select another..
+  echo stepTitle%: vhdx ^(!vhd!^) not found. Select another..
   goto :setVHD
 ) else (
-  dir /b /s ^"!vhd:"=!^" | findstr /ir .vhdx$ >NUL
+  dir /b /s !vhd! | findstr /ir .vhdx$ >NUL
   if !errorlevel! neq 0 (
     echo %stepTitle%: vhdx should have vhdx extension
     goto :setVHD
   )
 )
 
-for /f "usebackq delims=" %%i in (`dir /b /s !vhd!`) do (
-  echo %%i
-  set size=%%~zi
-  echo B: !size!
-  set sizeKB=!size:~0,-3!
+for /f "delims=" %%i in ('dir /b /s !vhd!') do (
+  set sizeB=%%~zi
+  
+  echo %stepTitle%: VHD size: !sizeB! B
+  if !sizeB! lss %vhdSizeMinB% (
+    echo %stepTitle%: Selected VHD is smaller than %vhdSizeMinGB% GB. Select another..
+    goto :setVHD
+  )
+  echo B: !sizeB!
+  set sizeKB=!sizeB:~0,-3!
   echo KB: !sizeKB!
   set sizeMB=!sizeKB:~0,-3!
   echo MB: !sizeMB!
@@ -36,11 +41,6 @@ for /f "usebackq delims=" %%i in (`dir /b /s !vhd!`) do (
   echo GB: !sizeGB!
 )
 
-echo %stepTitle%: VHD size: %sizeGB% GB
-if %sizeGB% lss %vhdSizeMin% (
-  echo %stepTitle%: Selected VHD is smaller than %vhdSizeMin% GB. Select another..
-  goto :setVHD
-)
 set /p labelPrefix="%stepTitle%: Enter vhd labels prefix: "
 
 set /p numberOfPartitions="%stepTitle%: Enter number of partitions: "
