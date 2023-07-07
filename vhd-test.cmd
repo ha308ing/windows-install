@@ -5,6 +5,8 @@ set stepTitle=vhdx allocation
 set vhdSizeMinGB=65
 : manually set %vhdSizeMinGB% * 1024 ^ 3
 set vhdSizeMinB=000069793218560
+: pasrtition size for system manually set 64 * 1024 ^ 3
+set partitionSizeSystemMinB=000068719476736
 set /p vhd="%stepTitle%: Enter path to vhdx: "
 if "!vhd!" equ "" goto :setVHD
 : default path with quotes
@@ -42,23 +44,61 @@ for /f "delims=" %%i in ('dir /b /s !vhd!') do (
   echo GB: !sizeGB!
 )
 
-set /p labelPrefix="%stepTitle%: Enter vhd labels prefix: "
-
 set /p numberOfPartitions="%stepTitle%: Enter number of partitions: "
+
+set /p labelPrefix="%stepTitle%: Enter vhd labels prefix: "
 
 set partitionSizeSystem=all available
 
-if %numberOfPartitions% gtr 1 (
-  :setPartitionSizeSystem
-  set /p partitionSizeSystem="%stepTitle%: Enter system partition size: "
-  echo %stepTitle%: Partition should be less than %sizeGB% GB
-  if !partitionSizeSystem! geq %sizeGB% goto :setPartitionSizeSystem
+@REM if %numberOfPartitions% gtr 1 (
+@REM :setPartitionSizeSystem
+@REM set /p partitionSizeSystem="%stepTitle%: Enter system partition size: "
+@REM echo %stepTitle%: Partition should be less than %sizeGB% GB
+@REM if !partitionSizeSystem! geq %sizeGB% goto :setPartitionSizeSystem
+@REM ask for sizes, first is system - check size
+@REM create variables from 1, 0 for efi (e.g. 0-efi, 1-system,2-data)
+@REM ask for labels?
+@REM for last partition size=0 - which means all available space
+@REM use sizes in GB?
+:setPartitionSize
+set partitionIndex=1
+for /l %%i in (!partitionIndex!,1,%numberOfPartitions%) do (
+  if "!partitionLabel%%i!" equ "" (
+    if %%i equ 1 echo %stepTitle%: First partition for system:
+    set /p "partitionLabel%%i=Enter partition %%i label: "
+  )
+
+  if %%i equ %numberOfPartitions% (
+    set "partitionSize%%i=0"
+  ) else (
+    set /p "partitionSize%%i=Enter partition %%i size in Bytes: "
+  )
+
+  if %%i equ 1 (
+    if  %numberOfPartitions% gtr 1 (
+      set "partitionSizeTemp=0000!partitionSize%%i!"
+      if !partitionSizeTemp:~-15! lss !partitionSizeSystemMinB:~-15! (
+        echo %stepTitle%: System partition must be larger than 64 GB. Enter another..
+        set /a partitionIndex-=1
+        goto :setPartitionSize
+      ) else (
+        set /a partitionIndex+=1
+      )
+    )
+  )
+)
+@REM )
+@REM )
+
+echo %stepTitle%: User defined partitions:
+for /l %%i in (1,1,%numberOfPartitions%) do (
+  echo Partition %%i. %labelPrefix%-!partitionLabel%%i! - !partitionSize%%i!
 )
 
-echo %stepTitle%: partitionSizeSystem: %partitionSizeSystem%
+@REM echo %stepTitle%: partitionSizeSystem: %partitionSizeSystem%
 
 @REM (
-@REM ECHO sel vdisk file=B:\win11-insider.vhdx
+@REM ECHO sel vdisk file=!vhd!
 @REM ECHO attach vdisk
 @REM ECHO clean
 @REM ECHO convert gpt
