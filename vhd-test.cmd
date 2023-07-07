@@ -8,25 +8,22 @@ set vhdSizeMinB=000069793218560
 : pasrtition size for system manually set 64 * 1024 ^ 3
 set partitionSizeSystemMinB=000068719476736
 set /p vhd="%stepTitle%: Enter path to vhdx: "
-if "!vhd!" equ "" goto :setVHD
+if ^"%vhd%^" equ "" goto :setVHD
 : default path with quotes
-set vhd=^"!vhd:"=!^"
+set vhd=^"%vhd:"=%^"
 
-: echo test finstr from name:
-: echo !vhd! | findstr /ie .vhd\\\"8
-
-if not exist !vhd! (
-  echo stepTitle%: vhdx ^(!vhd!^) not found. Select another..
+echo %vhd:"=%| findstr /i /r "\.vhdx$" >NUL
+if %errorlevel% neq 0 (
+  echo %stepTitle%: vhdx should have vhdx extension. Select another..
   goto :setVHD
 ) else (
-  dir /b /s !vhd! | findstr /ir .vhdx$ >NUL
-  if !errorlevel! neq 0 (
-    echo %stepTitle%: vhdx should have vhdx extension. Select another..
+  if not exist %vhd% (
+    echo %stepTitle%: vhdx ^(%vhd%^) not found. Select another..
     goto :setVHD
   )
 )
 
-for /f "delims=" %%i in ('dir /b /s !vhd!') do (
+for /f "delims=" %%i in ('dir /b /s %vhd%') do (
   set sizeB=00000%%~zi
   
   echo %stepTitle%: VHD size: !sizeB:~-15! B
