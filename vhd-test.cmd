@@ -4,7 +4,7 @@
 set stepTitle=vhdx allocation
 set vhdSizeMinGB=65
 : manually set %vhdSizeMinGB% * 1024 ^ 3
-set vhdSizeMinB=69793218560
+set vhdSizeMinB=000069793218560
 set /p vhd="%stepTitle%: Enter path to vhdx: "
 if "!vhd!" equ "" goto :setVHD
 : default path with quotes
@@ -19,16 +19,17 @@ if not exist !vhd! (
 ) else (
   dir /b /s !vhd! | findstr /ir .vhdx$ >NUL
   if !errorlevel! neq 0 (
-    echo %stepTitle%: vhdx should have vhdx extension
+    echo %stepTitle%: vhdx should have vhdx extension. Select another..
     goto :setVHD
   )
 )
 
 for /f "delims=" %%i in ('dir /b /s !vhd!') do (
-  set sizeB=%%~zi
+  set sizeB=00000%%~zi
   
-  echo %stepTitle%: VHD size: !sizeB! B
-  if !sizeB! lss %vhdSizeMinB% (
+  echo %stepTitle%: VHD size: !sizeB:~-15! B
+  echo %stepTitle%: VHD min size: !vhdSizeMinB:~-15! B
+  if !sizeB:~-15! lss !vhdSizeMinB:~-15! (
     echo %stepTitle%: Selected VHD is smaller than %vhdSizeMinGB% GB. Select another..
     goto :setVHD
   )
