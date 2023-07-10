@@ -41,7 +41,14 @@ for /f "delims=" %%i in ('dir /b /s %vhd%') do (
   echo GB: !sizeGB!
 )
 
+:setNumberOfPartitions
 set /p numberOfPartitions="%stepTitle%: Enter number of partitions: "
+echo %numberOfPartitions%| findstr /r ^[1-9][0-9]*$ > NUL
+if !errorlevel! neq 0 (
+  echo Use only numbers. Try another..
+  set /a partitionIndex-=1
+  goto :setNumberOfPartitions
+)
 
 set /p labelPrefix="%stepTitle%: Enter vhd labels prefix: "
 
