@@ -75,7 +75,13 @@ for /l %%i in (!partitionIndex!,1,%numberOfPartitions%) do (
   if %%i equ %numberOfPartitions% (
     set "partitionSize%%i=0"
   ) else (
-    set /p "partitionSize%%i=Enter partition %%i size in Bytes: "
+    set /p "partitionSize%%i=Enter partition %%i size in GB: "
+    echo !partitionSize%%i!| findstr /r ^[1-9][0-9]*$ > NUL
+    if !errorlevel! neq 0 (
+      echo Use only numbers. Try another..
+      set /a partitionIndex-=1
+      goto :setPartitionSize
+    )
   )
 
   if %%i equ 1 (
