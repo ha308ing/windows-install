@@ -6,7 +6,7 @@ set vhdSizeMinGB=65
 : manually set %vhdSizeMinGB% * 1024 ^ 3
 set vhdSizeMinB=000069793218560
 : pasrtition size for system manually set 64 * 1024 ^ 3
-set partitionSizeSystemMinB=000068719476736
+set partitionSizeSystemMinGB=0000000064
 set /p vhd="%stepTitle%: Enter path to vhdx: "
 if ^"%vhd%^" equ "" goto :setVHD
 : default path with quotes
@@ -84,10 +84,14 @@ for /l %%i in (!partitionIndex!,1,%numberOfPartitions%) do (
     )
   )
 
+  @REM prevent sizes larger than vhdx size
+  @REM and other entered sizes
+
   if %%i equ 1 (
     if  %numberOfPartitions% gtr 1 (
-      set "partitionSizeTemp=0000!partitionSize%%i!"
-      if !partitionSizeTemp:~-15! lss !partitionSizeSystemMinB:~-15! (
+      set "partitionSizeTemp=0000000000!partitionSize%%i!"
+      if !partitionSizeTemp:~-10! lss !partitionSizeSystemMinGB! (
+        @REM use number from variable instead of 64
         echo %stepTitle%: System partition must be larger than 64 GB. Enter another..
         set /a partitionIndex-=1
         goto :setPartitionSize
