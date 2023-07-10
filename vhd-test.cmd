@@ -100,42 +100,86 @@ for /l %%i in (!partitionIndex!,1,%numberOfPartitions%) do (
       )
     )
   )
+  set /a "partitionSize%%i*=1024"
 )
 @REM )
 @REM )
 
+@REM get available letters
+set partitionCounter=0
+
+set lettersString="C D E F G H I J K L M N O P Q R S T U V W X Y Z"
+set letters=!lettersString:"=!
+
+:changeLetter
+for /l %%i in (!partitionCounter!,1,%numberOfPartitions%) do (
+  for %%j in ( !letters! ) do (
+    dir "%%j:\" 2>NUL >NUL
+    if errorlevel 1 (
+      set "partitionLetter%%i=%%j"
+      set /a partitionCounter+=1
+    )
+    set letters=!letters:~2!
+    goto :changeLetter
+  )
+)
+
 echo %stepTitle%: User defined partitions:
 for /l %%i in (1,1,%numberOfPartitions%) do (
-  echo Partition %%i. %labelPrefix%-!partitionLabel%%i! - !partitionSize%%i!
+  echo Partition %%i. !partitionLetter%%i!:\ %labelPrefix%-!partitionLabel%%i! - !partitionSize%%i!
 )
 
 @REM echo %stepTitle%: partitionSizeSystem: %partitionSizeSystem%
 
-@REM (
-@REM ECHO sel vdisk file=!vhd!
-@REM ECHO attach vdisk
-@REM ECHO clean
-@REM ECHO convert gpt
-@REM ECHO sel part 1
-@REM ECHO delete part override
-@REM ECHO create part efi size=100
-@REM ECHO format quick fs=fat32 label="%labelPrefix%-efi"
-@REM ECHO create part msr size=16
-@REM if %numberOfPartitions% eq 1 (
-@REM ECHO create part pri
-@REM ) else (
-@REM ECHO create part pri size=%partitionSizeSystem%
+(
+ECHO sel vdisk file=%vhd%
+ECHO attach vdisk
+ECHO clean
+ECHO convert gpt
+ECHO sel part 1
+ECHO delete part override
+ECHO create part efi size=100
+ECHO format quick fs=fat32 label="%labelPrefix%-efi"
+ECHO assign letter=%partitionLetter0%
+ECHO create part msr size=16
+if %numberOfPartitions% equ 1 (
+  ECHO create part pri
+) else (
+  ECHO create part pri size=%partitionSize1%
+)
+ECHO format quick fs=ntfs label="%labelPrefix%-%partitionLabel1%"
+ECHO assign letter=%partitionLetter1%
+ECHO shrink minimum=450
+ECHO create part pri size=450
+ECHO format quick fs=ntfs label="%labelPrefix%-recovery"
+ECHO set id="de94bba4-06d1-4d40-a16a-bfd50179d6ac"
+if %numberOfPartitions% gtr 1 (
+  for /l %%i in (2,1,%numberOfPartitions%) do (
+    if !partitionSize%%i! equ 0 (
+      ECHO create part pri
+    ) else (
+      ECHO create part pri size=!partitionSize%%i!
+    )
+    ECHO format quick fs=ntfs label="%labelPrefix%-!partitionLabel%%i!"
+    ECHO assign letter=!partitionLetter%%i!
+  )
+)
+ECHO exit
+) > diskpart-script.txt
+
+diskpart /s "diskpart-script.txt"
+
+@REM if errorlevel 0 (
+@REM   echo Diskpart script completed successfully. Removing script file..
+@REM   del "diskpart-script.txt"
 @REM )
-@REM ECHO format quick fs=ntfs label="%labelPrefix%-system"
-@REM ECHO assign letter=F
-@REM ECHO shrink minimum=450
-@REM ECHO create part pri size=450
-@REM ECHO format quick fs=ntfs label="%labelPrefix%-recovery"
-@REM ECHO set id="de94bba4-06d1-4d40-a16a-bfd50179d6ac"
-@REM ECHO create part pri
-@REM ECHO format quick fs=ntfs label="%labelPrefix%-data"
-@REM ECHO assign letter=G
-@REM ECHO exit
+
+@REM bcdboot %partitionLabel1%\Windows /s %partitionLetter0%: /f UEFI
+
+@REM (
+@REM   echo sel vol=%partitionLetter0%
+@REM   echo remove letter=%partitionLetter0%
+@REM   echo exit
 @REM ) | diskpart
 
 :exitVHD
