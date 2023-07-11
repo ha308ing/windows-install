@@ -145,11 +145,12 @@ ECHO create part msr size=16
 if %numberOfPartitions% equ 1 (
   ECHO create part pri
 ) else (
-  ECHO create part pri size=%partitionSize1%
+  set /a partitionSize1+=500
+  ECHO create part pri size=!partitionSize1!
 )
 ECHO format quick fs=ntfs label="%labelPrefix%-%partitionLabel1%"
 ECHO assign letter=%partitionLetter1%
-ECHO shrink minimum=450
+ECHO shrink desired=450
 ECHO create part pri size=450
 ECHO format quick fs=ntfs label="%labelPrefix%-recovery"
 ECHO set id="de94bba4-06d1-4d40-a16a-bfd50179d6ac"
@@ -169,17 +170,34 @@ ECHO exit
 
 diskpart /s "diskpart-script.txt"
 
-@REM if errorlevel 0 (
-@REM   echo Diskpart script completed successfully. Removing script file..
-@REM   del "diskpart-script.txt"
+if %errorlevel% equ 0 (
+  echo Diskpart script completed successfully. Removing script file..
+  @REM del "diskpart-script.txt"
+) else (
+  echo Diskpart script failed..
+  goto :EOF
+  @REM goto ?
+)
+
+@REM :setBootPartition
+@REM set /p bootPartition=Enter drive letter with boot manager (empty to skip)^: 
+@REM if "%bootPartition%" neq "" (
+@REM   dir "%bootPartition%:\" 2>NUL >NUL
+@REM   if %errorlevel% equ 0 (
+@REM     bcdboot %partitionLetter1%\Windows /s %bootPartition%: /f UEFI
+@REM   ) else (
+@REM     echo No volume %bootPartition% is found. Try another..
+@REM     goto :setBootPartition
+@REM   )
 @REM )
 
-@REM bcdboot %partitionLabel1%\Windows /s %partitionLetter0%: /f UEFI
-
-@REM (
-@REM   echo sel vol=%partitionLetter0%
-@REM   echo remove letter=%partitionLetter0%
-@REM   echo exit
-@REM ) | diskpart
+@REM bcdboot %partitionLetter1%\Windows /s %partitionLetter0%: /f UEFI
+(
+  echo sel vol=%partitionLetter0%
+  echo remove letter=%partitionLetter0%
+  echo sel vdisk file=%vhd%
+  echo detach vdisk
+  echo exit
+) | diskpart
 
 :exitVHD
