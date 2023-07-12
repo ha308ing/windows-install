@@ -2,88 +2,97 @@
 @echo off & chcp 65001 >NUL & setlocal enabledelayedexpansion
 
 :askTargetDir
+@REM targetDir - directory to store modified image, extracted iso
 set /p targetDir=Enter target directory: 
-if not exist %targetDir% goto askTargetDir
-set imageModified=%targetDir%\images\modified\install.wim
-set mountDir=%targetDir%\mount
-
+set targetDir="%targetDir:"=%"
 :checkTargetDir
 if not exist %targetDir% (
-    set /p askCreateTargetDir="Target dir does not exist. Create? (y/n) "
-    if /i "!askCreateTargetDir!" equ "y" (
-        mkdir %targetDir% 
+    set /p askCreateTargetDir="Target dir does not exist. Create? (y/N) "
+    if /i "%askCreateTargetDir%" equ "y" (
+        mkdir %targetDir%
+        if errorlevel 1 (
+          echo Failed to create target dir..
+          goto askTargetDir
+        )
         goto checkTargetDir
     ) else goto askTargetDir
 )
+echo Target dir %targetDir% created successfully..
+set imageModified="%targetDir":"=%\images\modified\install.wim"
+set mountDir="%targetDir:"=%\mount"
+set isoDir="%targetDir:"=%\iso"
 
 @REM ask for iso or wim and decide by extension
 @REM for iso creation ask info when needed
-:askIsoPath
-set /p iso="Enter path to iso (blank to select install.wim): " || goto :askImagePath
-
-if not exist %iso% (
-  echo File not found. Try other iso path..
-  pause
-  set iso=
-  goto askIsoPath
-)
-
-dir /b %iso% | findstr /ir \.iso$ >NUL
-if errorlevel 1 (
-    echo File must have iso extension
-    set iso=
-    goto askIsoPath
-)
-
-echo Extracting..
-rd /s /q %targetDir%\iso
-7z x %iso% -o%targetDir%\iso 2>&1
-if errorlevel 1 (
-    echo Extracting failed..
-    goto askIsoPath
+:askInputPath
+set /p inputPath=Enter path to iso or wim:  || goto :askInputPath
+set inputPath="%inputPath:"=%"
+@REM no inputFormat? if wim -> skip iso?
+set inputFormat=
+set wimSource=
+echo %inputPath%| findstr \.wim\"$
+if %errorlevel% equ 0 (
+  set inputFormat=wim
+  set wimSource="%inputPath:"=%"
+  @REM goto :inputFormatWIM
 ) else (
-    echo Extracted successfully..
+  echo %inputPath%| findstr \.iso\"$
+  if !errorlevel! equ 0 (
+    set inputFormat=iso
+    set wimSource="%targetDir:"=%\iso\sources\install.wim"
+    @REM goto :inputFormatISO
+  ) else (
+    echo Enter iso or wim..
+    goto :askInputPath
+  )
+)
+if not exist %inputPath% (
+  echo File %inputPath% not found. Try another iso or wim..
+  goto :askInputPath
 )
 
-set imagePath=%targetDir%\iso\sources\install.wim
-goto copyImageForMod
+if "%inputFormat%" equ "wim" goto :inputFormatWIM
+@REM if "%inputFormat%" equ "iso" goto :inputFormatISO
 
-:askImagePath
-set /p imagePath="Enter path to install.wim (blank to select iso): "
-if "%imagePath%"=="" goto askIsoPath
-if not exist !imagePath! (
-  echo install.wim file is not found..
-  set imagePath=
-  goto :askImagePath
+:inputFormatISO
+echo Extracting %inputPath% to %isoDir%..
+rd /s /q %isoDir%
+7z x %isoPath% -o%isoDir% 2>&1 >NUL
+if %errorlevel% equ 0 (
+  echo Extracted successfully..
+) else (
+  echo Extracting failed..
+  rd /s /q %isoDir%
+  goto :askInputPath
 )
-dir /b %imagePath% | findstr /ir \.wim$ >NUL
-if errorlevel 1 (
-    echo File must have wim extension
-    set imagePath=
-    goto askImagePath
+
+:inputFormatWIM
+if not exist %wimSource% (
+  echo %wimSource% is not found. Try another iso or wim..
+  goto :askInputPath
 )
 
 :copyImageForMod
-if not exist %imagePath% (
-  echo install.wim is not found..
-  goto askIsoPath
-)
-
 : Copy install.wim for modification
-if "%imagePath:"=%" NEQ "%imageModified:"=%" (
-  echo Copying install.wim..
-  xcopy /Y %imagePath% %targetDir%\images\modified\
-)
-if exist %imageModified% (
-  echo Ok. install.wim is found..
-) else (
-  echo Not ok. install.wim is not found..
-  goto askIsoPath
+if %wimSource% neq %imageModified% (
+  echo Copying %wimSource% to %imageModified%..
+  xcopy /-I /Y %wimSource% %imageModified%
+  if !errorlevel! neq 0 (
+    echo Failed to copy. Try another iso or wim..
+    goto :askInputPath
+  )
 )
 
-:selectImageIndex
+if not exist %imageModified% (
+  echo %imageModified% not found. Try another iso or wim..
+  goto :askInputPath
+)
+
+:showImageIndex
 : Get image info
-dism /Get-ImageInfo /ImageFile:%imageModified%
+cls
+echo Available images:
+dism /get-imageinfo /imagefile:%imageModified%
 @REM if error - use another image
 
 : Select image index
@@ -98,190 +107,204 @@ dism /Get-ImageInfo /ImageFile:%imageModified%
 
 : Clear previous mount dir
 :clearMountDir
-echo Clearing mount dir..
-dism /unmount-image /mountdir:%mountdir% /discard
-rd /s /q %mountDir%
-echo Creating dir for mount..
+echo Clear mount dir..
+dism /unmount-image /mountdir:%mountdir% /discard >NUL
+rd /s /q %mountDir% >NUL
+echo Create mount dir..
 mkdir %mountDir%
 
 : Mount image
-set /p imageIndex=Select image index: 
+:inputImageIndex
+set /p imageIndex=Select image index: || goto :inputImageIndex
+echo %imageIndex%| findstr /r "^[1-9][0-9]*$" >NUL
+if errorlevel 1 goto :inputImageIndex
 echo Mounting install image..
-DISM /MOUNT-IMAGE /IMAGEFILE:%imageModified% /MOUNTDIR:%mountDir% /index:%imageIndex%
+dism /mount-image /imagefile:%imagemodified% /index:%imageIndex% /mountdir:%mountdir%
 if %errorlevel% neq 0 (
   echo Mounting failed..
-  goto clearMountDir
+  goto :showImageIndex
 )
 
 : DISM image servicing
+cls
 echo DISM image servicing..
 
 echo Image international servicing..
 
-DISM /IMAGE:%mountDir% /SET-TIMEZONE:"Russian Standard Time"
+dism /image:%mountDir% /set-timezone:"Russian Standard Time" >NUL
 if errorlevel 0 ( echo Timezone set.. ) else ( echo Failed to set timezone.. )
 
-DISM /IMAGE:%mountDir% /SET-INPUTLOCALE:en-US;ru-RU
+dism /image:%mountDir% /set-inputlocale:en-US;ru-RU >NUL
 if errorlevel 0 ( echo Input locale set.. ) else ( echo Failed to set input locale.. )
 
-DISM /IMAGE:%mountDir% /SET-SYSLOCALE:ru-RU
+dism /image:%mountDir% /set-syslocale:ru-RU >NUL
 if errorlevel 0 ( echo System locale set.. ) else ( echo Failed to set system locale.. )
 
-DISM /IMAGE:%mountDir% /SET-USERLOCALE:ru-RU
+dism /image:%mountDir% /set-userlocale:ru-RU >NUL
 if errorlevel 0 ( echo User locale set.. ) else ( echo Failed to set user locale.. )
 
-DISM /IMAGE:%mountDir% /ENABLE-FEATURE /FEATURENAME:Microsoft-Hyper-V-All
-if errorlevel 0 ( echo Hyper-V enabled.. ) else ( echo Failed to enable Hyper-V.. )
+:enableFeatures
+@REM do the same as with provisioned pacakges: file edition variant
+cls
+echo Image features:
+dism /image:%mountDir% /get-features /format:table 1 > fl.txt
+type fl.txt
 
+echo Enter features to enable (see "fl.txt"): 
+set /p inputFeatures=
+
+set failEnableFeatures=
+set successEnableFeatures=
+for /d %%i in (%inputFeatures%) do (
+  @REM check if feature is present in image?
+  dism /image:%mountDir% /enable-feature /featurename:%%i
+  if %errorlevel% neq 0 (
+    set failEnableFeatures=%failEnableFeatures%;%%i
+  ) else (
+    set successEnableFeatures=%successEnableFeatures%;%%i
+  )
+)
+
+if "%successEnableFeatures%" equ "" goto :enableFeaturesFail
+cls
+echo Successfully enabled features:
+for /d %%i in (%successEnableFeatures%) do (
+  echo %%i
+)
+pause
+
+:enableFeaturesFail
+if "%failEnableFeatures%" equ "" goto :enableFeaturesExit
+cls
+echo Failed to enable features:
+for /d %%i in (%failEnableFeatures%) do (
+  echo %%i
+)
+:askReEnableFeatures
+set /p reEnableFeatures=Try enable features again ^(y/n^)? 
+if /i "!reEnableFeatures!" equ "y" goto :enableFeatures
+if /i "!reEnableFeatures!" neq "n" goto :askReEnableFeatures
+
+:enableFeaturesExit
 
 : Registry modifications
+cls
 echo Registry modifications..
 
 : SOFTWARE registry modifications
-REM Apply registry modifications
-REM SET regsPath=E:\OneDrive\arkaev\windows-custom-setup\reg-offline
+@REM Apply registry modifications
+@REM SET regsPath=E:\OneDrive\arkaev\windows-custom-setup\reg-offline
 :setRegSoftware
-set /p regSoftware="Enter path to SOFTWARE registry modifications (blank to skip): "
-if "%regSoftware%"=="" (
-  echo "Skipping SOFTWARE registry modifications.."
-  goto noRegSoftware
-)
-if exist %regSoftware% (
-
-  REG LOAD HKLM\OFFLINE %mountDir%\Windows\System32\config\SOFTWARE
-  if errorlevel 0 ( echo SOFTWARE registry loaded.. ) else ( echo Failed to load SOFTWARE registry.. )
-
-  REG IMPORT %regSoftware%
-  if errorlevel 0 ( echo SOFTWARE registry modification imported.. ) else ( echo Failed to load import SOFTWARE registry modification.. )
-
-  REG UNLOAD HKLM\OFFLINE
-  if errorlevel 0 ( echo SOFTWARE registry unloaded.. ) else ( echo Failed to unload SOFTWARE registry.. )
-
-) else (
-  echo "Specified file is not found. Try another.."
+set /p regSoftware=Enter path to SOFTWARE registry modifications ^(blank to skip^): || goto :noRegSoftware
+set regSoftware="%regSoftware:"=%"
+if not exist %regSoftware% (
+  echo  "%regSoftware%" is not found. Try another..
   pause
-  goto setRegSoftware
+  goto :setRegSoftware
 )
-:noRegSoftware
+call :modifyRegistry SOFTWARE "%mountDir:"=%\Windows\System32\config\SOFTWARE" %regSoftware%
+ :noRegSoftware
 
 : USER registry modifications
-REM SET regUser=%regsPath%\offline_HKCU.reg
+@REM SET regUser=%regsPath%\offline_HKCU.reg
 :setRegUser
-set /p regUser="Enter path to USER registry modifications (blank to skip): "
-if "%regUser%"=="" (
-  echo "Skipping USER registry modifications.."
-  goto noRegUser
-)
-if exist %regUser% (
+set /p regUser=Enter path to USER registry modifications ^(blank to skip^): || goto :noRegUser
+set regUser="%regUser:"=%"
 
-  REG LOAD HKLM\OFFLINE %mountDir%\Windows\System32\config\DEFAULT
-  if errorlevel 0 ( echo USER registry loaded.. ) else ( echo Failed to load USER registry.. )
-
-  REG IMPORT %regUser%
-  if errorlevel 0 ( echo USER registry modification imported.. ) else ( echo Failed to import USER registry modification.. )
-
-  REG UNLOAD HKLM\OFFLINE
-  if errorlevel 0 ( echo USER registry unloaded.. ) else ( echo Failed to unload USER registry.. )
-
-  : default user NTUSER.DAT
-  REG LOAD HKLM\OFFLINE %mountDir%\Users\Default\NTUSER.DAT
-  if errorlevel 0 ( echo Default user registry loaded.. ) else ( echo Failed to load default user registry.. )
-
-  REG IMPORT %regUser%
-  if errorlevel 0 ( echo Default user registry modification imported.. ) else ( echo Failed to import default user registry modification.. )
-
-  REG UNLOAD HKLM\OFFLINE
-  if errorlevel 0 ( echo Default user registry unloaded.. ) else ( echo Failed to unload default user registry.. )
-
-) else (
-  echo "Specified file is not found. Try another.."
+if not exist %regUser% (
+  echo %regUser% is not found. Try another..
   pause
   goto setRegUser
 )
+
+call :modifyRegistry USER "%mountDir:"=%\Windows\System32\config\DEFAULT" %regUser%
+
+call :modifyRegistry USER "%mountDir:"=%\Users\Default\NTUSER.DAT" %regUser%
+
 :noRegUser
 
 
 : Remove preinstalled apps
-REM Remove preinstalled apps
-echo Removing preinstalled apps..
+@REM Remove preinstalled apps
+cls
+echo List of Provisined Packages:
+powershell -command "& { New-Item -Path pp.txt -Value \"\" -Force | Out-Null; Get-AppxProvisionedPackage -Path %mountDir% | ForEach-Object { Write-Host $_.DisplayName; Add-Content -Path pp.txt -Value $_.DisplayName -Encoding oem } }"
 
-echo List of preinstalled apps:
-powershell -command "Get-AppxProvisionedPackage -Path %mountDir% | ForEach-Object { $name = '\"'+$_.DisplayName+'\"'; Write-Host $name }"
 
-powershell -command "$apps = @( 'Clipchamp.Clipchamp', 'Microsoft.549981C3F5F10', 'Microsoft.BingNews', 'Microsoft.GamingApp', 'Microsoft.GetHelp', 'Microsoft.Getstarted', 'Microsoft.MicrosoftOfficeHub', 'Microsoft.MicrosoftSolitaireCollection', 'Microsoft.MicrosoftStickyNotes', 'Microsoft.People', 'Microsoft.Todos', 'Microsoft.WindowsCamera', 'microsoft.windowscommunicationsapps', 'Microsoft.WindowsFeedbackHub', 'Microsoft.WindowsMaps', 'Microsoft.Xbox.TCUI', 'Microsoft.XboxGameOverlay', 'Microsoft.XboxGamingOverlay', 'Microsoft.XboxIdentityProvider', 'Microsoft.XboxSpeechToTextOverlay', 'Microsoft.YourPhone', 'Microsoft.ZuneMusic', 'Microsoft.ZuneVideo', 'MicrosoftCorporationII.MicrosoftFamily', 'MicrosoftCorporationII.QuickAssist' );  Get-AppxProvisionedPackage -Path %mountDir% | ForEach-Object { if ( $apps -contains $_.DisplayName ) { Write-Host Removing $_.DisplayName...; Remove-AppxProvisionedPackage -Path %mountDir% -PackageName $_.PackageName | Out-Null } }"
+echo Edit file pp.txt to contain only package delete or place your own list to delete
+pause
+set packagesToDelete=
+for /f "tokens=* delims=" %%i in (pp.txt) do set packagesToDelete=!packagesToDelete!,'%%i'
+set packagesToDelete=%packagesToDelete:~1%
+
+powershell -command "& { $apps = @( %packagesToDelete% ); Get-AppxProvisionedPackage -Path %mountDir% | ForEach-Object { if ( $apps -contains $_.DisplayName ) { Write-Host Removing $_.DisplayName...; Remove-AppxProvisionedPackage -Path %mountDir% -PackageName $_.PackageName | Out-Null } } }"
 
 
 : Copy preconfigured Edge User Data
-REM Copy preconfigured Edge User Data
+@REM Copy preconfigured Edge User Data
 REM SET edgeSettings=E:\OneDrive\arkaev\windows-custom-setup\edge-clean\Edge.zip
-
+cls
 echo Copy preconfigured Edge User Data..
 :setEdge
-set /p edgeSettings="Enter path to Edge settings archive (blank to skip): "
-if "%edgeSettings%"=="" (
-  echo "Skipping Edge settings copy.."
-  goto noEdge
-)
+set /p edgeSettings="Enter path to Edge settings archive (blank to skip): " || goto :noEdge
+set edgeSettings="%edgeSettings:"=%"
+
 if exist %edgeSettings% (
-  rd /s /q %mountDir%\Users\Default\AppData\Local\Microsoft\Edge\
-  7z x %edgeSettings% -o%mountDir%\Users\Default\AppData\Local\Microsoft\
-  if errorlevel 0 (
+  rd /s /q "%mountDir:"=%\Users\Default\AppData\Local\Microsoft\Edge\"
+  7z x %edgeSettings% -o"%mountDir:"=%\Users\Default\AppData\Local\Microsoft\"
+  if %errorlevel% equ 0 (
     echo Edge settings extracted successfully..
   ) else (
     echo Failed to extract Edge settings..
-    rd /s /q %mountDir%\Users\Default\AppData\Local\Microsoft\Edge\
+    rd /s /q "%mountDir:"=%\Users\Default\AppData\Local\Microsoft\Edge\"
   )
 ) else (
-  echo "Specified file is not found. Try another.."
+  echo %edgeSettings% is not found. Try another..
   pause
-  goto setEdge
+  goto :setEdge
 )
 :noEdge
 
 
 : Copy unattend.xml files
 REM Copy unattend.xml files
+cls
 echo Copy unattend.xml files..
 REM SET xmlPath=E:\OneDrive\arkaev\windows-custom-setup\xml
 REM SET unattendPanther=%xmlPath%\Panther\unattend.xml
 REM SET unattendSysprep=%xmlPath%\Sysprep\unattend.xml
 
 :setUnattendPanther
-set /p unattendPanther="Enter path to Panther\unattend.xml (blank to skip): "
-if "%unattendPanther%"=="" (
-  echo "Skipping copy of Panther\unattend.."
-  goto noUnattendPanther
-)
+set /p unattendPanther="Enter path to Panther\unattend.xml (blank to skip): " || 
+  goto :noUnattendPanther
+set unattendPanther="%unattendPanther:"=%"
+
 if exist %unattendPanther% (
-  MKDIR %mountDir%\Windows\Panther\
-  COPY %unattendPanther% %mountDir%\Windows\Panther\
+  mkdir "%mountDir:"=%\Windows\Panther\"
+  copy %unattendPanther% "%mountDir:"=%\Windows\Panther\"
 ) else (
-  echo "Specified file is not found. Try another.."
+  echo %unattendPanther% is not found. Try another..
   pause
-  goto setUnattendPanther
+  goto :setUnattendPanther
 )
 :noUnattendPanther
 
 :setUnattendSysprep
-set /p unattendSysprep="Enter path to Sysprep\unattend.xml (blank to skip): "
-if "%unattendSysprep%"=="" (
-  echo "Skipping copy of Sysprep\unattend.."
-  goto noUnattendSysprep
-)
+set /p unattendSysprep="Enter path to Sysprep\unattend.xml (blank to skip): " || goto :noUnattendSysprep
+set unattendSysprep="%unattendSysprep:"=%"
 if exist %unattendSysprep% (
-  COPY %unattendSysprep% %mountDir%\Windows\System32\Sysprep\
+  copy %unattendSysprep% "%mountDir:"=%\Windows\System32\Sysprep\"
 ) else (
-  echo "Specified file is not found. Try another.."
+  echo %unattendSysprep% is not found. Try another..
   pause
   goto setUnattendSysprep
 )
 :noUnattendSysprep
 
-
 :saveImage
-REM Save image
+@REM Save image
 echo Saving install image..
-DISM /UNMOUNT-IMAGE /MOUNTDIR:%mountdir% /COMMIT
+dism /unmount-image /mountdir:%mountdir% /commit
 
 REM
 REM             Create ISO with modified image
@@ -333,7 +356,7 @@ set partitionSizeSystemMinGB=0000000064
 set /p vhd="%stepTitle%: Enter path to vhdx: "
 if ^"%vhd%^" equ "" goto :setVHD
 : default path with quotes
-set vhd=^"%vhd:"=%^"
+set vhd="%vhd:"=%"
 
 echo %vhd:"=%| findstr /i /r "\.vhdx$" >NUL
 if %errorlevel% neq 0 (
@@ -528,3 +551,28 @@ bcdboot %partitionLetter1%:\Windows /s %partitionLetter0%: /f UEFI
 ) | diskpart
 
 :exitVHD
+
+
+
+exit /b
+
+:modifyRegistry
+@REM call :modifyRegistry HIVE_TYPE PATH_TO_HIVE PATH_TO_REG
+@REM %1 - HIVE TYPE (USER, SOFTWARE)
+@REM %2 - path to hive
+@REM %3 - reg file to import
+echo reg load HKLM\OFFLINE %2 ^>NUL
+if errorlevel 0 (
+  echo Failed to load %1 registry..
+  goto :exitModifyRegistry
+)
+
+echo reg import %3 ^>NUL
+if errorlevel 1 echo Failed to import %1 registry modification..
+
+echo reg unload HKLM\OFFLINE ^>NUL
+if errorlevel 1 echo Failed to unload %1 registry..
+
+if %errorlevel% equ 0 echo %1 registry modification imported successfully..
+:exitModifyRegistry
+exit /b
