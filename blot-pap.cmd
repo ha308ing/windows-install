@@ -161,9 +161,115 @@
 @REM set pp=%pp:~1%
 @REM echo %pp%
 
-:start
-echo Enter name:
-set /p name=
-set name="%name:"=%"
-echo %name%
-goto :start
+@REM :start
+@REM echo Enter name:
+@REM set /p name=
+@REM set name="%name:"=%"
+@REM echo %name%
+@REM goto :start
+
+@REM set edgeTarget="\Users\Default\AppData\Local\Microsoft\"
+@REM echo "%edgeTarget:"=%Edge\"
+
+@REM :start
+@REM echo Enter program:
+@REM set /p p= || goto :start
+@REM where %p% 2>NUL >NUL
+@REM if errorlevel 1 (
+@REM   echo program %p% is not found
+@REM )
+@REM goto :start
+
+
+@REM dir "%ProgramFiles(x86)%\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\amd64\Oscdimg\oscdimg.exe" 2>NUL >NUL
+
+@REM if errorlevel 1 (
+@REM   echo no
+@REM ) else (
+@REM   echo yes
+@REM )
+
+@REM set targetDir=drrr
+@REM :askIsoName
+@REM set /p target=Enter iso name: || goto :askIsoName
+@REM echo %target%| findstr /ir "\.iso$" >NUL
+@REM if errorlevel 1 set target=%target%.iso
+@REM set target="%targetDir:"=%\%target%"
+@REM echo %target%
+
+@REM set vhdPath="%ProgramFiles(x86)%\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\amd64"
+@REM echo VHD (%vhdPath%) not found. Select another..
+
+
+@REM :setNumberOfPartitions
+@REM set /p numberOfPartitions=Enter number of partitions: || goto :setNumberOfPartitions
+@REM echo %numberOfPartitions%| findstr /r "^[1-9][0-9]*$"
+@REM if %errorlevel% neq 0 (
+@REM   echo Use only numbers. Try another..
+@REM   goto :setNumberOfPartitions
+@REM )
+
+@REM set numberOfPartitions=3
+
+@REM :getPartitionsInfo
+@REM for /l %%i in (1,1,%numberOfPartitions%) do (
+@REM   set /p partitionLabel%%i=Enter partition %%i label: 
+@REM   call :getPartitionSize %%i %numberOfPartitions%
+@REM )
+
+@REM for /l %%i in (1,1,%numberOfPartitions%) do (
+@REM   echo partition %%i: !partitionLabel%%i! - !partitionSize%%i!
+@REM )
+
+@REM exit /b
+
+@REM :getPartitionSize
+@REM @REM %1 - %%i
+@REM @REM %2 - %numberOfPartitions%
+@REM :getNewSize
+@REM set /p partitionSize%1=Enter parition %1 size: 
+@REM @REM set currentSize=!size%1!
+@REM @REM echo currentSize: %currentSize%
+@REM if %1 equ %2 (
+@REM   if "!partitionSize%1!" equ "" set partitionSize%1=0
+@REM ) else (
+@REM   echo !partitionSize%1!| findstr /r "^[1-9][0-9]*$"
+@REM   if errorlevel 1 (
+@REM     echo Use only numbers. Try another partition size..
+@REM     goto :getNewSize
+@REM   )
+@REM )
+@REM set /a partitionSize%1*=1024
+@REM exit /b
+
+@REM set inputPath="E:\Distrib_p\OS\uupdump.net\25393\25393.1_amd64_en-us_professional_26b20909_convert\25393.1.230608-1158.ZN_RELEASE_CLIENTPRO_OEMRET_X64FRE_EN-US.ISO"
+@REM echo %inputPath%| findstr /ir "\.iso""$" >NUL
+@REM if %errorlevel% equ 0 (
+@REM   echo found
+@REM ) else (
+@REM   echo not found
+@REM )
+
+
+@REM :getPacakgesToRemoveList
+@REM echo Remove Provisioned Packages:
+@REM set /p packagesToDeletePath="Enter path to file with packages to delete (blank to generate file): "
+@REM if "%packagesToDeletePath%" equ "" goto :generatePacakgesToRemoveList
+@REM set packagesToDeletePath="%packagesToDeletePath:"=%"
+@REM if not exist %packagesToDeletePath% (
+@REM   echo %packagesToDeletePath% not found. Try another..
+@REM   goto :getPacakgesToRemoveList
+@REM ) else (
+@REM   goto :removeProvisionedPackages
+@REM )
+
+@REM :generatePacakgesToRemoveList
+@REM echo Generating Packages List
+
+@REM :removeProvisionedPackages
+@REM echo Removing Packages
+
+set vhdPath="B:\win11-temp.wim"
+set vhdPath="%vhdPath:"=%"
+
+echo %vhdPath%| findstr /ir "\.wim""$"
