@@ -269,7 +269,13 @@
 @REM :removeProvisionedPackages
 @REM echo Removing Packages
 
-set vhdPath="B:\win11-temp.wim"
-set vhdPath="%vhdPath:"=%"
+@REM set vhdPath="B:\win11-temp.wim"
+@REM set vhdPath="%vhdPath:"=%"
 
-echo %vhdPath%| findstr /ir "\.wim""$"
+@REM echo %vhdPath%| findstr /ir "\.wim""$"
+
+set "bootDescription="
+:setBootDescription
+set /p "bootDescription=Enter boot menu description: " || goto :setBootDescription
+set "bootDescription="%bootDescription:"=%""
+echo /set {default} description %bootDescription%

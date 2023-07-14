@@ -3,11 +3,11 @@
 
 :askTargetDir
 @REM targetDir - directory to store modified image, extracted iso
-set /p targetDir=Enter target directory: 
+set /p "targetDir=Enter target directory: "
 set targetDir="%targetDir:"=%"
 :checkTargetDir
 if not exist %targetDir% (
-    set /p askCreateTargetDir="Target dir does not exist. Create? (y/N) "
+    set /p "askCreateTargetDir=Target dir does not exist. Create? (y/N) "
     if /i "%askCreateTargetDir%" equ "y" (
         mkdir %targetDir%
         if errorlevel 1 (
@@ -24,20 +24,20 @@ set isoDir="%targetDir:"=%\iso"
 @REM ask for iso or wim and decide by extension
 @REM for iso creation ask info when needed
 :askInputPath
-set /p inputPath="Enter path to iso or wim: " || goto :askInputPath
+set /p "inputPath=Enter path to iso or wim: " || goto :askInputPath
 set inputPath="%inputPath:"=%"
 @REM no inputFormat? if wim -> skip iso?
-set inputFormat=
-set wimSource=
+set "inputFormat="
+set "wimSource="
 echo %inputPath%| findstr /ir "\.wim""$" >NUL
 if %errorlevel% equ 0 (
-  set inputFormat=wim
+  set "inputFormat=wim"
   set wimSource="%inputPath:"=%"
   @REM goto :inputFormatWIM
 ) else (
   echo %inputPath%| findstr /ir "\.iso""$" >NUL
   if !errorlevel! equ 0 (
-    set inputFormat=iso
+    set "inputFormat=iso"
     set wimSource="%targetDir:"=%\iso\sources\install.wim"
     @REM goto :inputFormatISO
   ) else (
@@ -114,7 +114,7 @@ dism /get-imageinfo /imagefile:%imageModified%
 : )
 : Mount image
 :inputImageIndex
-set /p imageIndex="Select image index: " || goto :inputImageIndex
+set /p "imageIndex=Select image index: " || goto :inputImageIndex
 echo %imageIndex%| findstr /r "^[1-9][0-9]*$" >NUL
 if errorlevel 1 goto :inputImageIndex
 echo Mounting install image..
@@ -151,17 +151,17 @@ dism /image:%mountDir% /get-features /format:table 1>%featuresListPath%
 type %featuresListPath%
 
 echo "Enter features to enable (see %featuresListPath%): "
-set /p inputFeatures= || goto :enableFeaturesExit
+set /p "inputFeatures=" || goto :enableFeaturesExit
 
-set failEnableFeatures=
-set successEnableFeatures=
+set "failEnableFeatures="
+set "successEnableFeatures="
 for /d %%i in (%inputFeatures%) do (
   @REM check if feature is present in image?
   dism /image:%mountDir% /enable-feature /featurename:%%i
   if %errorlevel% neq 0 (
-    set failEnableFeatures=%failEnableFeatures%;%%i
+    set "failEnableFeatures=%failEnableFeatures%;%%i"
   ) else (
-    set successEnableFeatures=%successEnableFeatures%;%%i
+    set "successEnableFeatures=%successEnableFeatures%;%%i"
   )
 )
 
@@ -181,7 +181,7 @@ for /d %%i in (%failEnableFeatures%) do (
   echo %%i
 )
 :askReEnableFeatures
-set /p reEnableFeatures=Try enable features again ^(y/n^)? 
+set /p "reEnableFeatures=Try enable features again (y/n)? "
 if /i "!reEnableFeatures!" equ "y" goto :enableFeatures
 if /i "!reEnableFeatures!" neq "n" goto :askReEnableFeatures
 
@@ -195,7 +195,7 @@ echo Registry modifications..
 @REM Apply registry modifications
 @REM SET regsPath=E:\OneDrive\arkaev\windows-custom-setup\reg-offline
 :setRegSoftware
-set /p regSoftware="Enter path to SOFTWARE registry modifications (blank to skip): " || goto :noRegSoftware
+set /p "regSoftware=Enter path to SOFTWARE registry modifications (blank to skip): " || goto :noRegSoftware
 set regSoftware="%regSoftware:"=%"
 if not exist %regSoftware% (
   echo  "%regSoftware%" is not found. Try another..
@@ -208,7 +208,7 @@ call :modifyRegistry SOFTWARE "%mountDir:"=%\Windows\System32\config\SOFTWARE" %
 : USER registry modifications
 @REM SET regUser=%regsPath%\offline_HKCU.reg
 :setRegUser
-set /p regUser="Enter path to USER registry modifications (blank to skip): " || goto :noRegUser
+set /p "regUser=Enter path to USER registry modifications (blank to skip): " || goto :noRegUser
 set regUser="%regUser:"=%"
 
 if not exist %regUser% (
@@ -229,7 +229,7 @@ call :modifyRegistry USER "%mountDir:"=%\Users\Default\NTUSER.DAT" %regUser%
 cls
 :getPackagesToRemoveList
 echo Remove Provisioned Packages:
-set /p packagesToDeletePath="Enter path to file with packages to delete (blank to generate file): "
+set /p "packagesToDeletePath=Enter path to file with packages to delete (blank to generate file): "
 if "%packagesToDeletePath%" equ "" goto :generatePackagesToRemoveList
 set packagesToDeletePath="%packagesToDeletePath:"=%"
 if not exist %packagesToDeletePath% (
@@ -242,7 +242,7 @@ if not exist %packagesToDeletePath% (
 set packagesToDeletePath="%targetDir:"=%\pp.txt"
 echo List of Provisined Packages:
 @REM in case of preplaced pp.txt skip override
-powershell -command "& { New-Item -Path %packagesToDeletePath% -Value \"\" -Force | Out-Null; Get-AppxProvisionedPackage -Path %mountDir% | ForEach-Object { Add-Content -Path %packagesToDeletePath% -Value $_.DisplayName -Encoding oem } }"
+powershell -noprofile -command "& { New-Item -Path %packagesToDeletePath% -Value \"\" -Force | Out-Null; Get-AppxProvisionedPackage -Path %mountDir% | ForEach-Object { Add-Content -Path %packagesToDeletePath% -Value $_.DisplayName -Encoding oem } }"
 echo.
 echo Edit file %packagesToDeletePath% to contain only packages to delete.
 echo or place your own list to delete
@@ -253,11 +253,11 @@ pause
 cls
 echo "Provisioned Packages to delete (from %packagesToDeletePath%):"
 type %packagesToDeletePath%
-set packagesToDelete=
-for /f "tokens=* usebackq delims=" %%i in (%packagesToDeletePath%) do set packagesToDelete=!packagesToDelete!,'%%i'
-set packagesToDelete=%packagesToDelete:~1%
+set "packagesToDelete="
+for /f "tokens=* usebackq delims=" %%i in (%packagesToDeletePath%) do set "packagesToDelete=!packagesToDelete!,'%%i'"
+set "packagesToDelete=%packagesToDelete:~1%"
 
-powershell -command "& { $apps = @( %packagesToDelete% ); Get-AppxProvisionedPackage -Path %mountDir% | ForEach-Object { if ( $apps -contains $_.DisplayName ) { Write-Host Removing $_.DisplayName...; Remove-AppxProvisionedPackage -Path %mountDir% -PackageName $_.PackageName | Out-Null } } }"
+powershell -noprofile -command "& { $apps = @( %packagesToDelete% ); Get-AppxProvisionedPackage -Path %mountDir% | ForEach-Object { if ( $apps -contains $_.DisplayName ) { Write-Host Removing $_.DisplayName...; Remove-AppxProvisionedPackage -Path %mountDir% -PackageName $_.PackageName | Out-Null } } }"
 
 
 : Copy preconfigured Edge User Data
@@ -266,7 +266,7 @@ REM SET edgeSettings=E:\OneDrive\arkaev\windows-custom-setup\edge-clean\Edge.zip
 cls
 echo Copy preconfigured Edge User Data..
 :setEdge
-set /p edgePath="Enter path to Edge settings archive (blank to skip): " || goto :noEdge
+set /p "edgePath=Enter path to Edge settings archive (blank to skip): " || goto :noEdge
 set edgePath="%edgePath:"=%"
 set edgeTargetParent="%mountDir:"=%\Users\Default\AppData\Local\Microsoft"
 set edgeTarget="%edgeTargetParent:"=%\Edge"
@@ -297,7 +297,7 @@ REM SET unattendPanther=%xmlPath%\Panther\unattend.xml
 REM SET unattendSysprep=%xmlPath%\Sysprep\unattend.xml
 
 :setUnattendPanther
-set /p unattendPanther="Enter path to Panther\unattend.xml (blank to skip): " || goto :noUnattendPanther
+set /p "unattendPanther=Enter path to Panther\unattend.xml (blank to skip): " || goto :noUnattendPanther
 set unattendPanther="%unattendPanther:"=%"
 
 if exist %unattendPanther% (
@@ -311,7 +311,7 @@ if exist %unattendPanther% (
 :noUnattendPanther
 
 :setUnattendSysprep
-set /p unattendSysprep="Enter path to Sysprep\unattend.xml (blank to skip): " || goto :noUnattendSysprep
+set /p "unattendSysprep=Enter path to Sysprep\unattend.xml (blank to skip): " || goto :noUnattendSysprep
 set unattendSysprep="%unattendSysprep:"=%"
 if exist %unattendSysprep% (
   copy %unattendSysprep% "%mountDir:"=%\Windows\System32\Sysprep\"
@@ -334,12 +334,12 @@ if errorlevel 1 (
 @REM Create ISO with modified image
 @REM If no oscdimg no ISO, show warning and skip
 if "%inputFormat%" neq "iso" goto :exitISO
-set oscdimgPath=
+set "oscdimgPath="
 where oscdimg 2>NUL >NUL
 if errorlevel 0 (
   goto :askISO
 )
-set oscdimgPath="%ProgramFiles(x86)%\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\amd64\Oscdimg\oscdimg.exe"
+set "oscdimgPath=%ProgramFiles(x86)%\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\amd64\Oscdimg\oscdimg.exe"
 dir %oscdimgPath% 2>NUL >NUL
 if errorlevel 1 (
   @REM echo Program oscdimg is not present in system..
@@ -348,7 +348,7 @@ if errorlevel 1 (
 
 cls
 :askISO
-set /p isISO=Create ISO (y/n)? 
+set /p "isISO=Create ISO (y/n)? "
 if /i "%isISO%" equ "y" goto :yesISO
 if /i "%isISO%" equ "n" goto :exitISO
 goto :askISO
@@ -357,17 +357,17 @@ goto :askISO
 @REM MKDIR images\original
 @REM MOVE iso\sources\install.wim images\original\
 copy %imageModified% "%isoDir:"=%\sources\"
-set PATH=%PATH%;%oscdimgPath:"=%
+set "PATH=%PATH%;%oscdimgPath%"
 set etfsboot="%isoDir:"=%\boot\etfsboot.com"
 set efisys="%isoDir:"=%\efi\microsoft\boot\efisys.bin"
-set source=%isoDir%
+set "source=%isoDir%"
 :askISOName
-set /p target="Enter iso name: " || goto :askISOName
+set /p "target=Enter iso name: " || goto :askISOName
 echo %target%| findstr /ir "\.iso$" >NUL
 if errorlevel 1 set target=%target%.iso
-set target="%targetDir:"=%\%target%"
+set "target="%targetDir:"=%\%target%""
 :setISOLabel
-set /p label="Enter iso label: " || goto :setISOLabel
+set /p "label=Enter iso label: " || goto :setISOLabel
 set label="%label:"=%"
 OSCDIMG -h -m -o -u2 -udfver102 -bootdata:2#p0,e,b%etfsboot%#pEF,e,b%efisys% -l%label% %source% %target%
 if %errorlevel% equ 0 (
@@ -381,7 +381,7 @@ if %errorlevel% equ 0 (
 
 cls
 :askVHD
-set /p isVHD=Modify VHD and apply image (y/n)? 
+set /p "isVHD=Modify VHD and apply image (y/n)? "
 if /i "%isVHD%"=="n" goto :noVHD
 if /i "%isVHD%"=="y" goto :yesVHD
 goto askVHD
@@ -393,7 +393,7 @@ set vhdSizeMinB=000069793218560
 : pasrtition size for system manually set 64 * 1024 ^ 3
 @REM set partitionSizeSystemMinGB=0000000064
 :setVHD
-set /p vhdPath="Enter path to vhdx: " || goto :setVHD
+set /p "vhdPath=Enter path to vhdx: " || goto :setVHD
 : default path with quotes
 set vhdPath="%vhdPath:"=%"
 echo %vhdPath:"=%| findstr /ir "\.vhdx$" >NUL
@@ -408,7 +408,7 @@ if %errorlevel% neq 0 (
 )
 
 for /f "delims=" %%i in ('dir /b /s %vhdPath%') do (
-  set sizeB=000000000000000%%~zi
+  set "sizeB=000000000000000%%~zi"
 )
 if %sizeB:~-15% lss %vhdSizeMinB:~-15% (
   echo Selected VHD is smaller than %vhdSizeMinGB% GB. Select another..
@@ -416,7 +416,7 @@ if %sizeB:~-15% lss %vhdSizeMinB:~-15% (
 )
 
 :setNumberOfPartitions
-set /p numberOfPartitions=Enter number of partitions: 
+set /p "numberOfPartitions=Enter number of partitions: "
 echo %numberOfPartitions%| findstr /r "^[1-9][0-9]*$" >NUL
 if %errorlevel% neq 0 (
   echo Use only numbers. Try another..
@@ -424,27 +424,27 @@ if %errorlevel% neq 0 (
 )
 
 :set vhdLabelPrefix
-set /p labelPrefix="Enter vhd labels prefix: " || goto :vhdLabelPrefix
+set /p "labelPrefix=Enter vhd labels prefix: " || goto :vhdLabelPrefix
 
 @REM get partitions labels and sizes
 
 for /l %%i in (1,1,%numberOfPartitions%) do (
-  set /p partitionLabel%%i=Enter partition %%i label: 
+  set /p "partitionLabel%%i=Enter partition %%i label: "
   call :getPartitionSize %%i %numberOfPartitions%
 )
 
 @REM get available letters
 set partitionCounter=0
 
-set lettersString="C D E F G H I J K L M N O P Q R S T U V W X Y Z"
-set letters=!lettersString:"=!
+set "letters=C D E F G H I J K L M N O P Q R S T U V W X Y Z"
+@REM set letters=!lettersString:"=!
 
 :changeLetter
 for /l %%i in (!partitionCounter!,1,%numberOfPartitions%) do (
   for %%j in ( !letters! ) do (
     dir "%%j:\" 2>NUL >NUL
     if errorlevel 1 (
-      set "partitionLetter%%i=%%j"
+      set partitionLetter%%i=%%j
       set /a partitionCounter+=1
     )
     set letters=!letters:~2!
@@ -518,12 +518,13 @@ dism /apply-image /imagefile:%imageModified% /index:%imageIndex% /applydir:%part
 
 
 :askCurrentBoot
-set /p askCurrentBoot=Add to current boot manager (y/n)? 
+set /p "askCurrentBoot=Add to current boot manager (y/n)? "
 if /i "%isVHD%" equ "y" (
   bcdboot %partitionLetter1%:\Windows
   :setBootDescription
-  set /p bootDescription="Enter boot menu description: " || goto :setBootDescription
+  set /p "bootDescription=Enter boot menu description: " || goto :setBootDescription
   bcdedit /set {default} description "%bootDescription%"
+  bcdedit /default {current}
   goto :exitCurrentBoot
 )
 if /i "%isVHD%" neq "n" goto :askCurrentBoot
@@ -571,7 +572,7 @@ exit /b
 @REM %2 - %numberOfPartitions%
 @REM implement size requirements
 :getNewSize
-set /p partitionSize%1=Enter parition %1 size: 
+set /p "partitionSize%1=Enter parition %1 size: "
 @REM set currentSize=!size%1!
 @REM echo currentSize: %currentSize%
 if %1 equ %2 (
