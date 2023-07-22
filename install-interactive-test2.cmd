@@ -52,7 +52,7 @@ set "_installSource=%_inputFile%"
 if %_installSource% equ %_imageModified% goto :skipCopy
 :copyImage
 echo Copy install.wim
-xcopy /-i /y %_installSource% %_imageModified%
+robocopy "%_isoDir:"=%\sources" "%_targetDir:"=%\images\modified" "install.wim"
 :skipCopy
 echo image in modified
 call %__showImageIndexes% %_imageModified%
@@ -96,6 +96,15 @@ call %__regModify% %_hive% %_userReg%
 set "_hive="%_mountDir:"=%\Users\Default\NTUSER.DAT""
 call %__regModify% %_hive% %_userReg%
 :noReg
+copyImage.cmd "D:\Ivan\23493\iso\sources\install.wim" D:\Ivan\23493\images\modified
+dismShowImages.cmd
+dismMountImage.cmd 
+dismIntlServicing.cmd D:\Ivan\23493\mount 
+regModify.cmd "%_mountDir:"=%\Windows\System32\config\SOFTWARE"
+regModify.cmd "%_mountDir:"=%\Windows\System32\config\DEFAULT"
+regModify.cmd "%_mountDir:"=%\Users\Default\NTUSER.DAT"
+dismDiscardImage.cmd 
+dismCommitImage.cmd
 call :copyEdgeSettings
 call :copyUnattend
 call :getFeaturesList
@@ -116,7 +125,7 @@ call %__quote% _edgePath
 call %__checkFile% %_edgePath%
 if errorlevel 1 (
   echo File not found. Try another..
-    goto :setEdge
+  goto :setEdge
 )
 set "_edgeTargetParent="%_mountDir:"=%\Users\Default\AppData\Local\Microsoft""
 set "_edgeTarget="%_edgeTargetParent:"=%\Edge""
@@ -140,10 +149,11 @@ call %__quote% _unattendPanther
 call %__checkFile% %_unattendPanther%
 if errorlevel 1 (
   echo File is not found. Try another..
-    goto :setUnattendPanther
+  goto :setUnattendPanther
 )
 mkdir "%_mountDir:"=%\Windows\Panther\"
-xcopy /-I /Y %_unattendPanther% "%_mountDir:"=%\Windows\Panther\unattend.xml"
+copy /Y %_unattendPanther% "%_mountDir:"=%\Windows\Panther\unattend.xml"
+
 :skipUnattendPanther
 
 :setUnattendSysprep
@@ -154,7 +164,7 @@ if errorlevel 1 (
   echo File is not found. Try another..
   goto :setUnattendSysprep
 )
-xcopy /-I /Y  %_unattendSysprep% "%_mountDir:"=%\Windows\System32\Sysprep\unattend.xml"
+copy /Y  %_unattendSysprep% "%_mountDir:"=%\Windows\System32\Sysprep\unattend.xml"
 :skipUnattendSysprep
 exit /b
 
@@ -195,7 +205,7 @@ for /f "usebackq" %%i in (%_inputPackages%) do (
 choice /c yn /m "Continue with current list?"
 if errorlevel 2 (
   echo Update %_inputPackages%..
-    goto :printPackagesToRemove
+  goto :printPackagesToRemove
 )
 if errorlevel 1 echo Continue with current list
 exit /b

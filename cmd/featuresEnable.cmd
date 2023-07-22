@@ -1,5 +1,6 @@
 
-@REM %1 - mountDir
+@REM %1 - targetDir
+@REM %2 - mountDir
 @REM ===========================================================================
 :getFeaturesList
 echo Get file with features to enable..
@@ -24,7 +25,7 @@ exit /b
 @REM ===========================================================================
 :generateFeaturesList
 echo Generate features list..
-powershell -noprofile -command "& {get-windowsoptionalfeature  -Path %_mountDir% | where-object -property state -value disabled -eq | sort-object -property featurename | select-object -property featurename} | format-table -hidetableheaders" > %_flPath%
+powershell -noprofile -command "& {get-windowsoptionalfeature -Path %_mountDir% | where-object -property state -value disabled -eq | sort-object -property featurename | select-object -property featurename} | format-table -hidetableheaders" > %_flPath%
 type %_flPath%
 exit /b
 
