@@ -103,6 +103,18 @@ dismIntlServicing.cmd D:\Ivan\23493\mount
 regModify.cmd "%_mountDir:"=%\Windows\System32\config\SOFTWARE"
 regModify.cmd "%_mountDir:"=%\Windows\System32\config\DEFAULT"
 regModify.cmd "%_mountDir:"=%\Users\Default\NTUSER.DAT"
+
+@REM extract archive to mount?
+:askExtract
+choice /c yn /m "Extract any archive to mount dir?"
+if errolevel 2 goto :noExtract
+if errolevel 1 call :filesExtract.cmd
+goto :askExtract
+@REM  filesExtract.cmd "E:\OneDrive\arkaev\windows-custom-setup\edge-clean\Edge.zip" "%_mountDir:"=%\Users\Default\AppData\Local\Microsoft"
+:noExtract
+
+@REM copy to panther\unattend.xml
+robocopy
 dismDiscardImage.cmd 
 dismCommitImage.cmd
 call :copyEdgeSettings

@@ -12,11 +12,16 @@ if "%2" equ "" (
 ) else (
     set _mountDir=%2
 )
-call %~dp0dismShowImages %_image%
+if "%3" neq "" (
+    set _index=%3
+    goto :mountImage
+)
 :askIndex
+call %~dp0dismShowImages %_image%
 set /p "_index=Enter target index: "
 echo "%_index%" | findstr /r "^"[1-9][0-9]" $"
 if errorlevel 1 goto :askIndex
+:mountImage
 dism /mount-image /imagefile:%_image% /index:%_index% /mountdir:%_mountDir%
 if %errorlevel% neq 0 (
     echo Failed to mount image. Try another index..
