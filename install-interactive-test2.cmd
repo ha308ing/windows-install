@@ -114,7 +114,22 @@ goto :askExtract
 :noExtract
 
 @REM copy to panther\unattend.xml
-robocopy
+:askPanther
+choice /c yn /m "Copy unattend.xml to Panther?"
+if errolevel 2 goto :noPanther
+if errolevel 1 call :copyUnattendPanther.cmd %_mountDir%
+goto :askPanther
+:noPanther
+
+@REM copy to panther\unattend.xml
+:askSysprep
+choice /c yn /m "Copy unattend.xml to Sysprep?"
+if errolevel 2 goto :noSysprep
+if errolevel 1 call :copyUnattendSysprep.cmd %_mountDir%
+goto :askSysprep
+:noSysprep
+
+
 dismDiscardImage.cmd 
 dismCommitImage.cmd
 call :copyEdgeSettings
