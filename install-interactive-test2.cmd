@@ -64,10 +64,10 @@ if errorlevel 1 goto :askInputFile
 echo.
 echo Input file: %_inputFile%..
 
-@REM backup wim file
-if %_wimSource% equ %_imageModified% goto :noBackup
+@REM copy wim file for modification
+if %_wimSource% equ %_imageModified% goto :nowimCopy
 copy /y %_wimSource% %_imageModified%
-:noBackup
+:nowimCopy
 
 @REM mount image
 call %__dismShowImages% %_imageModified%
@@ -78,9 +78,14 @@ if errorlevel 1 goto :askIndex
 call %__dismMountImage% %_imageModified% %_mountDir% %_index%
 
 @REM dism intl servicing
-call %__dismIntlServicing% %_mountDir%
+choice /c yn /m "Do internalization servicing?"
+if errorlevel 2 goto :noIntlServicing
+if errorlevel 1 call %__dismIntlServicing% %_mountDir%
+:noIntlServicing
 
 @REM extract archive to mount?
+set "_currentEdge="%_mountDir:"=%\Users\Default\AppData\Local\Microsoft\Edge""
+if exist %_currentEdge% rmdir /s /q %currentEdge%
 call %__filesExtract% "E:\OneDrive\arkaev\windows-custom-setup\edge-clean\Edge.zip" "%_mountDir:"=%\Users\Default\AppData\Local\Microsoft"
 :askExtract
 choice /c yn /m "Extract any archive to mount dir?"
@@ -155,4 +160,7 @@ call %__packagesRemove% %_mountDir% %_packagesList%
 
 @REM save image
 call %__dismCommitImage% %_mountDir%
+
+@REM apply image
+@REM call %__applyImage%
 exit /b
