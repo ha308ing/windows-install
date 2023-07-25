@@ -1,8 +1,13 @@
 setlocal enabledelayedexpansion
 @REM %1 - %_mountDir%
 @REM ===========================================================================
-set _mountDir=%1
-if "%_mountDir%" equ "" call :askMountDir
+
+set "_mountDir=%1"
+if "%_mountDir%" neq "" goto :servicing
+:askMountDir
+set /p "_mountDir=Enter path to mount dir" || goto :askMountDir
+set "_mountDir="%_mountDir:"=%"
+:servicing
 echo DISM image servicing..
 echo Image international servicing..
 :setTimezone

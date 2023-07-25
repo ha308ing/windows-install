@@ -14,21 +14,19 @@ set "_sysprepDir="%_target:"=%\Windows\System32\Sysprep""
 if not exist %_sysprepDir%  mkdir %_sysprepDir%
 set "_target="%_sysprepDir:"=%\unattend.xml""
 
-set "_source="%2""
-if %_source% equ "" (
-  call :inputSource
-) else (
-  set "_source="%_source:"=%""
-  call :checkXml %_source%
-  if errorlevel 1 (
-    echo File must be .xml. Try another..
-    goto :inputSource
-  )
-  if not exist %_source% (
-    echo File is not found. Try another..
-    call :inputSource
-  )
+set "_source=%2"
+if "%_source%" equ "" call :inputSource
+set "_source="%_source:"=%""
+call :checkXml %_source%
+if errorlevel 1 (
+  echo File must be .xml. Try another..
+  goto :inputSource
 )
+if not exist %_source% (
+  echo File is not found. Try another..
+  call :inputSource
+)
+
 copy /y %_source% %_target%
 exit /b
 

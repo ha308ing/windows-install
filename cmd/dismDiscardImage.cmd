@@ -10,7 +10,7 @@ if "%1" equ "" (
 set "_mountDir="%_mountDir:"=%""
 
 dism /unmount-image /mountdir:%_mountDir% /discard
-rmdir %_mountDir%
+rmdir /s /q %_mountDir%
 exit /b
 
 :inputMountDir
@@ -18,7 +18,7 @@ exit /b
 set /p "_mountDir=Enter path mount dir: "
 set "_mountDir="%_mountDir:"=%""
 :checkMountDir
-call %~dp0checkDir %_mountDir%
+dir /b /a:d %_mountDir%
 if errorlevel 1 (
     choice /c yn /m "Directory not found. Use another?"
     if errorlevel 2 exit /b 1
