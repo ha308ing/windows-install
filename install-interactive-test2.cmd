@@ -13,6 +13,8 @@ set "__featuresEnable="%~dp0cmd\featuresEnable.cmd""
 set "__packagesShow="%~dp0cmd\packagesShow.cmd""
 set "__packagesRemove="%~dp0cmd\packagesRemove.cmd""
 set "__dismCommitImage="%~dp0cmd\dismCommitImage.cmd""
+set "__setVHD="%~dp0cmd\vhdCreate.cmd""
+set "__installMediaISOCreate="%~dp0cmd\installMediaISOCreate.cmd""
 
 @REM option when image already mounted?
 
@@ -65,16 +67,17 @@ echo.
 echo Input file: %_inputFile%..
 
 @REM copy wim file for modification
-if %_wimSource% equ %_imageModified% goto :nowimCopy
+if %_wimSource% equ %_imageModified% (
+  choice /c yn /m "Modify image?"
+  if errorlevel 2 goto :noImageModification
+  if errorlevel 1 goto :nowimCopy
+)
 copy /y %_wimSource% %_imageModified%
 :nowimCopy
 
 @REM mount image
 call %__dismShowImages% %_imageModified%
-:askIndex
-set /p "_index=Enter image index: " || goto :askIndex
-echo %_index%| findstr /r "^[1-9][0-9]*$"
-if errorlevel 1 goto :askIndex
+call :setIndex
 call %__dismMountImage% %_imageModified% %_mountDir% %_index%
 
 @REM dism intl servicing
@@ -160,7 +163,201 @@ call %__packagesRemove% %_mountDir% %_packagesList%
 
 @REM save image
 call %__dismCommitImage% %_mountDir%
+:noImageModification
 
-@REM apply image
-@REM call %__applyImage%
+@REM create iso?
+call :createIso
+
+@REM apply image to vhd
+choice /c yn /m "Apply image to vhd?"
+if errorlevel 2 goto :noVDH
+if errorlevel 1 goto :askVHD
+:askVHD
+set /p "_vhd=Enter path to vhd: " || goto :askVHD
+set "_vhd="%_vhd:"=%""
+call %__setVHD% %_vhd%
+if errorlevel 1 goto :askVHD
+set "_scriptPath="%_targetDir:"=%\diskpart-script-allocate.txt""
+call :vhdAllocate %_vhd% %_scriptPath%
+diskpart /s %_scriptPath%
+if errorlevel 1 (
+  echo Diskpart script failed..
+  goto :askVHD
+)
+echo Diskpart script completed successfully..
+
+echo %_index%| findstr /r "^[1-9][0-9]*$"
+if errorlevel 1 call :setIndex
+dism /apply-image /imagefile:%_imageModified% /index:%_index% /applydir:%_partitionLetter1%:\
+
+:askCurrentBoot
+choice /c yn /m "Add to current boot manager?"
+if errorlevel 2 goto :exitCurrentBoot
+if errorlevel 1 goto :addToCurrentBoot
+:addToCurrentBoot
+bcdboot %_partitionLetter1%:\Windows
+:setBootDescription
+set /p "_bootDescription=Enter boot menu description: " || goto :setBootDescription
+bcdedit /set {default} description "%_bootDescription%"
+bcdedit /default {current}
+:exitCurrentBoot
+
+bcdboot %_partitionLetter1%:\Windows /s %_partitionLetter0%: /f UEFI
+(
+  echo sel vol=%_partitionLetter0%
+  echo remove letter=%_partitionLetter0%
+  echo sel vdisk file=%_vhd%
+  echo detach vdisk
+  echo exit
+) | diskpart
+
+:noVHD
+exit /b
+
+:setIndex
+:askIndex
+set /p "_index=Enter image index: " || goto :askIndex
+echo %_index%| findstr /r "^[1-9][0-9]*$"
+if errorlevel 1 goto :askIndex
+exit /b
+
+
+:vhdAllocate
+@REM %1 - vhd
+@REM %2 - script save path
+
+set "_scriptPath=%2"
+if "%_scriptPath%" equ "" (
+  set _scriptPath=%~dp0diskpart-script-allocate.txt
+)
+set "_vhd=%1"
+:setNumberOfPartitions
+set /p "_numberOfPartitions=Enter number of partitions: "
+echo %_numberOfPartitions%| findstr /r "^[1-9][0-9]*$" >NUL
+if errorlevel 1 (
+  echo Use only numbers. Try another..
+  goto :setNumberOfPartitions
+)
+
+:set vhdLabelPrefix
+set /p "_labelPrefix=Enter vhd labels prefix: " || goto :vhdLabelPrefix
+
+@REM get partitions labels and sizes
+for /l %%i in (1,1,%_numberOfPartitions%) do (
+  set /p "_partitionLabel%%i=Enter partition %%i label: "
+  if %%i lss %_numberOfPartitions% (
+    call :getPartitionSize %%i %_numberOfPartitions%
+  ) else (
+    set _partitionSize%%i=0
+  )
+)
+
+@REM get available letters
+set "_letters=C D E F G H I J K L M N O P Q R S T U V W X Y Z"
+set "_partitionCounter=0"
+
+:changeLetter
+for /l %%i in (!_partitionCounter!,1,%_numberOfPartitions%) do (
+  for %%j in ( !_letters! ) do (
+    @REM dir "%%j:\" 2>NUL >NUL
+    @REM if errorlevel 1 (
+    if not exist "%%j:\" (
+      set _partitionLetter%%i=%%j
+      set /a _partitionCounter+=1
+    )
+    set _letters=!_letters:~2!
+    goto :changeLetter
+  )
+)
+
+echo User defined partitions:
+for /l %%i in (1,1,%_numberOfPartitions%) do (
+  echo Partition %%i. !_partitionLetter%%i!:\ %_labelPrefix%-!_partitionLabel%%i! - !_partitionSize%%i!
+)
+pause
+echo off
+(
+echo sel vdisk file=%_vhd%
+echo attach vdisk
+echo clean
+echo convert gpt
+echo sel part 1
+echo delete part override
+echo create part efi size=100
+echo format quick fs=fat32 label="%_labelPrefix%-efi"
+echo assign letter=%_partitionLetter0%
+echo create part msr size=16
+if %_numberOfPartitions% equ 1 (
+  echo create part pri
+) else (
+  set /a _partitionSize1+=500
+  echo create part pri size=!_partitionSize1!
+)
+if "%_partitionLabel1%" equ "" (
+  echo format quick fs=ntfs
+) else (
+  echo format quick fs=ntfs label="%_labelPrefix%-%_partitionLabel1%"
+)
+echo assign letter=%_partitionLetter1%
+echo shrink desired=450
+echo create part pri size=450
+echo format quick fs=ntfs label="%_labelPrefix%-recovery"
+echo set id="de94bba4-06d1-4d40-a16a-bfd50179d6ac"
+if %_numberOfPartitions% equ 1 goto :endPartitions
+for /l %%i in (2,1,%_numberOfPartitions%) do (
+  if !_partitionSize%%i! equ 0 (
+    echo create part pri
+  ) else (
+    echo create part pri size=!_partitionSize%%i!
+  )
+  if "!_partitionLabel%%i!" equ "" (
+    echo format quick fs=ntfs
+  ) else (
+    echo format quick fs=ntfs label="%_labelPrefix%-!_partitionLabel%%i!"
+  )
+  echo assign letter=!_partitionLetter%%i!
+)
+:endPartitions
+echo exit
+) > %_scriptPath%
+echo on
+@REM diskpart /s %_scriptPath%
+@REM if %errorlevel% equ 0 (
+@REM   echo Diskpart script completed successfully..
+@REM   @REM del "diskpart-script.txt"
+@REM ) else (
+@REM   echo Diskpart script failed..
+@REM   @REM goto ?
+@REM )
+
+exit /b
+
+:getPartitionSize
+@REM %1 - %%i
+@REM %2 - %numberOfPartitions%
+@REM implement size requirements
+:getNewSize
+set /p "_partitionSize%1=Enter parition %1 size in MB: "
+@REM set currentSize=!size%1!
+@REM echo currentSize: %currentSize%
+if %1 equ %2 (
+  if "!_partitionSize%1!" equ "" set _partitionSize%1=0
+) else (
+  echo !_partitionSize%1!| findstr /r "^[1-9][0-9]*$"
+  if errorlevel 1 (
+    echo Use only numbers. Try another partition size..
+    goto :getNewSize
+  )
+)
+set /a _partitionSize%1*=1024
+exit /b
+
+:createISO
+choice /c yn /m "Create iso with modified image?"
+if errorlevel 2 goto :noISO
+if errorlevel 1 goto :yesISO
+:yesISO
+robocopy "%_targetDir:"=%\images\modified" "%_isoDir:"=%\sources" install.wim
+call %__installMediaISOCreate% %_isoDir%
+:noISO
 exit /b
