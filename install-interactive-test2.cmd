@@ -5,6 +5,7 @@ set "__extractIso="%~dp0cmd\extractIso.cmd""
 set "__dismMountImage="%~dp0cmd\dismMountImage.cmd""
 set "__dismShowImages="%~dp0cmd\dismShowImages.cmd""
 set "__dismIntlServicing="%~dp0cmd\dismIntlServicing.cmd""
+set "__regModify="%~dp0cmd\regModify.cmd""
 set "__filesExtract="%~dp0cmd\filesExtract.cmd""
 set "__copyUnattendPanther="%~dp0cmd\copyUnattendPanther.cmd""
 set "__copyUnattendSysprep="%~dp0cmd\copyUnattendSysprep.cmd""
@@ -91,6 +92,19 @@ choice /c yn /m "Do internalization servicing?"
 if errorlevel 2 goto :noIntlServicing
 if errorlevel 1 call %__dismIntlServicing% %_mountDir%
 :noIntlServicing
+
+@REM reg modify
+call %__regModify% "%_mountDir:"=%\Windows\system32\config\SOFTWARE" "E:\OneDrive\arkaev\windows-custom-setup\reg-offline\offline_HKLM-Software.reg"
+call %__regModify% "%_mountDir:"=%\Windows\system32\config\DEFAULT" "E:\OneDrive\arkaev\windows-custom-setup\reg-offline\offline_HKCU.reg"
+call %__regModify% "%_mountDir:"=%\Users\Default\NTUSER.DAT" "E:\OneDrive\arkaev\windows-custom-setup\reg-offline\offline_HKCU.reg"
+:askReg
+choice /c yn /m "Modify Registry?"
+if errorlevel 2 goto :noReg
+if errorlevel 1 goto :yesReg
+:yesReg
+call %__regModify%
+goto :askReg
+:noReg
 
 @REM extract archive to mount?
 set "_currentEdge="%_mountDir:"=%\Users\Default\AppData\Local\Microsoft\Edge""
@@ -226,6 +240,7 @@ bcdboot %_partitionLetter1%:\Windows /s %_partitionLetter0%: /f UEFI
 ) | diskpart
 
 :noVHD
+echo End..
 exit /b
 
 :setIndex
@@ -351,7 +366,7 @@ exit /b
 @REM %2 - %numberOfPartitions%
 @REM implement size requirements
 :getNewSize
-set /p "_partitionSize%1=Enter parition %1 size in MB: "
+set /p "_partitionSize%1=Enter parition %1 size in GB: "
 @REM set currentSize=!size%1!
 @REM echo currentSize: %currentSize%
 if %1 equ %2 (
@@ -371,7 +386,9 @@ choice /c yn /m "Create iso with modified image?"
 if errorlevel 2 goto :noISO
 if errorlevel 1 goto :yesISO
 :yesISO
+pushd %_targetDir%
 robocopy "%_targetDir:"=%\images\modified" "%_isoDir:"=%\sources" install.wim
 call %__installMediaISOCreate% %_isoDir%
+popd
 :noISO
 exit /b
