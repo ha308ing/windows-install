@@ -118,7 +118,6 @@ echo User defined partitions:
 for /l %%i in (1,1,%_numberOfPartitions%) do (
   echo Partition %%i. !_partitionLetter%%i!:\ %_labelPrefix%-!_partitionLabel%%i! - !_partitionSize%%i!
 )
-pause
 echo off
 (
 echo sel vdisk file=%_vhd%
@@ -183,7 +182,7 @@ exit /b
 @REM %2 - %numberOfPartitions%
 @REM implement size requirements
 :getNewSize
-set /p "_partitionSize%1=Enter parition %1 size: "
+set /p "_partitionSize%1=Enter parition %1 size in GB: "
 @REM set currentSize=!size%1!
 @REM echo currentSize: %currentSize%
 if %1 equ %2 (

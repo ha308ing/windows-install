@@ -61,10 +61,11 @@ set "_inputFormat=iso"
 call %__extractIso% %_inputFile% %_isoDir%
 set _wimSource="%_isoDir:"=%\sources\install.wim"
 :setWimExit
-dir /b /a:-d %_inputFile%
+dir /b /a:-d %_wimSource%
 if errorlevel 1 goto :askInputFile
 echo.
 echo Input file: %_inputFile%..
+echo Input wim: %_wimSource%..
 
 @REM copy wim file for modification
 if %_wimSource% equ %_imageModified% (
@@ -72,10 +73,15 @@ if %_wimSource% equ %_imageModified% (
   if errorlevel 2 goto :noImageModification
   if errorlevel 1 goto :nowimCopy
 )
+mkdir "%_targetDir:"=%\images\modified"
 copy /y %_wimSource% %_imageModified%
 :nowimCopy
 
 @REM mount image
+if not exist %_imageModified% (
+  echo Image file not found. Try another..
+  goto :askInputFile
+)
 call %__dismShowImages% %_imageModified%
 call :setIndex
 call %__dismMountImage% %_imageModified% %_mountDir% %_index%
@@ -166,7 +172,7 @@ call %__dismCommitImage% %_mountDir%
 :noImageModification
 
 @REM create iso?
-call :createIso
+if %_inputFormat% equ iso call :createIso
 
 @REM apply image to vhd
 choice /c yn /m "Apply image to vhd?"
@@ -179,8 +185,12 @@ call %__setVHD% %_vhd%
 if errorlevel 1 goto :askVHD
 set "_scriptPath="%_targetDir:"=%\diskpart-script-allocate.txt""
 call :vhdAllocate %_vhd% %_scriptPath%
+choice /c yn /m "Review %_scriptPath%. Use this file?"
+if errorlevel 2 goto :askVHD
+if errorlevel 1 goto :runDiskpartScript
+:runDiskpartScript
 diskpart /s %_scriptPath%
-if errorlevel 1 (
+if %errorlevel% neq 0 (
   echo Diskpart script failed..
   goto :askVHD
 )
@@ -189,6 +199,10 @@ echo Diskpart script completed successfully..
 echo %_index%| findstr /r "^[1-9][0-9]*$"
 if errorlevel 1 call :setIndex
 dism /apply-image /imagefile:%_imageModified% /index:%_index% /applydir:%_partitionLetter1%:\
+if errorlevel 1 (
+  echo Apply image failed.
+  goto :askVHD
+)
 
 :askCurrentBoot
 choice /c yn /m "Add to current boot manager?"
